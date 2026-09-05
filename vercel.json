@@ -8,6 +8,6 @@
     { "source": "/add-cashbook", "destination": "/frontend/add-cashbook.html" },
     { "source": "/cashbook-detail", "destination": "/frontend/cashbook-detail.html" },
     { "source": "/superadmin", "destination": "/frontend/superadmin.html" },
-    { "source": "/(.*)", "destination": "/frontend/$1" }
+    { "source": "/((?!_vercel).*)", "destination": "/frontend/$1" }
   ]
 }
