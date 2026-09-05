@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Cashbook</title>
+  <script>
+    const user = localStorage.getItem("user");
+    window.location.replace(user ? "frontend/cashbooks.html" : "frontend/login.html");
+  </script>
+</head>
+<body style="font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #f7f6f2;">
+  <p>Redirecting to <a href="frontend/login.html" style="color: #1a2a3a; font-weight: 600;">My Cashbook</a>...</p>
+</body>
+</html>
