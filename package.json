@@ -1,0 +1,13 @@
+{
+  "name": "cashbook-app",
+  "version": "1.0.0",
+  "description": "My Cashbook - Full-stack cashbook and financial ledger tracking system",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "postinstall": "cd backend && npm install"
+  },
+  "keywords": [],
+  "author": "TruCoded",
+  "license": "MIT"
+}

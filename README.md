@@ -156,6 +156,33 @@ Database: Google Sheets (via Apps Script)
 
 ---
 
+## 🌐 Cloud Deployment Guide
+
+### Option A: Deploy on Render (Recommended - Free & 1-Click All-in-One)
+
+Render can host both your Express backend and your frontend static files together under a single URL with zero CORS issues.
+
+1. Go to [Render Dashboard](https://dashboard.render.com/) and click **New +** > **Web Service**.
+2. Connect your GitHub repository (`TruCoded/cashbook_sql`).
+3. Configure the settings:
+   - **Name**: `my-cashbook`
+   - **Environment**: `Node`
+   - **Build Command**: `npm install --prefix backend`
+   - **Start Command**: `node backend/server.js`
+4. Add **Environment Variables** (under *Advanced*):
+   - `APPS_SCRIPT_URL`: *(Your deployed Google Apps Script Web App URL)*
+   - `GOOGLE_CLIENT_ID`: *(Optional, for Google Sign-In)*
+5. Click **Create Web Service**. Your app is live at `https://your-app.onrender.com`!
+
+### Option B: Deploy on Vercel
+
+If deploying the frontend on Vercel:
+1. Import your GitHub repository to [Vercel](https://vercel.com/).
+2. Keep the root directory or set it to `./`.
+3. Vercel will use `vercel.json` to route frontend files and backend requests.
+
+---
+
 ## 📡 API Reference
 
 | Method | Endpoint | Description |

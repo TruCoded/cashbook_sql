@@ -1,5 +1,7 @@
-// add-cashbook.js - creates a new cashbook ("new sheet") for the logged-in user
-const API = "http://localhost:5000/api";
+// add-cashbook.js - creates a new cashbook linked to the current user
+const API = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && window.location.port !== "5000"
+  ? "http://localhost:5000/api"
+  : "/api";
 const user = JSON.parse(localStorage.getItem("user") || "null");
 if (!user) window.location.href = "login.html";
 

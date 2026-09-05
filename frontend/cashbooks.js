@@ -1,5 +1,7 @@
 // cashbooks.js - shows the logged-in user's name and their list of cashbooks
-const API = "http://localhost:5000/api";
+const API = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && window.location.port !== "5000"
+  ? "http://localhost:5000/api"
+  : "/api";
 const user = JSON.parse(localStorage.getItem("user") || "null");
 if (!user) window.location.href = "login.html"; // must be logged in
 

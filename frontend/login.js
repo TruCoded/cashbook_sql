@@ -1,5 +1,6 @@
-// login.js - authenticates against the backend and stores the user for other pages
-const API = "http://localhost:5000/api";
+const API = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && window.location.port !== "5000"
+  ? "http://localhost:5000/api"
+  : "/api";
 
 // ---- Google Sign-In (Gmail OAuth) ----
 // Paste your OAuth Client ID here (Google Cloud Console -> Credentials).

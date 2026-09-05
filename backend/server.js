@@ -13,9 +13,16 @@ const { OAuth2Client } = require("google-auth-library"); // verifies Google Sign
 const sheetsDb = require("./sheetsDb");
 
 const DB_PATH = path.join(__dirname, "data", "db.json");
+const FRONTEND_PATH = path.join(__dirname, "..", "frontend");
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Serve static frontend files if hosted together (e.g. Render, Heroku)
+if (fs.existsSync(FRONTEND_PATH)) {
+  app.use(express.static(FRONTEND_PATH));
+  app.get("/", (req, res) => res.sendFile(path.join(FRONTEND_PATH, "login.html")));
+}
 
 const usingAppsScript = sheetsDb.isConfigured();
 console.log(usingAppsScript ? "Database: Google Sheets (via Apps Script)" : "Database: local data/db.json (fallback)");
@@ -173,4 +180,5 @@ app.get("/api/superadmin/all", async (req, res) => {
   res.json(rows);
 });
 
-app.listen(5000, () => console.log("My Cashbook backend running on http://localhost:5000"));
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`My Cashbook backend running on port ${PORT}`));

@@ -1,6 +1,8 @@
-// cashbook-detail.js - shows cash in/out/balance, lets the owner add entries,
-// and add a collaborator (person 2) after verifying an email OTP.
-const API = "http://localhost:5000/api";
+// cashbook-detail.js - shows Cash In / Cash Out / Balance, lets owner add
+// entries and invite collaborators via OTP.
+const API = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && window.location.port !== "5000"
+  ? "http://localhost:5000/api"
+  : "/api";
 // URL param first, localStorage as a fallback (in case a page reload from
 // Live Server or similar drops the query string before this code runs)
 const id = new URLSearchParams(location.search).get("id") || localStorage.getItem("lastCashbookId");
