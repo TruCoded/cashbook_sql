@@ -1,6 +1,7 @@
 {
   "cleanUrls": true,
   "rewrites": [
+    { "source": "/api/:path*", "destination": "https://cashbook-sql.onrender.com/api/:path*" },
     { "source": "/", "destination": "/frontend/login.html" },
     { "source": "/login", "destination": "/frontend/login.html" },
     { "source": "/signup", "destination": "/frontend/signup.html" },
