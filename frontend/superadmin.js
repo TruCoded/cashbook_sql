@@ -1,7 +1,7 @@
 // superadmin.js - loads and displays all users' cashbooks in one flat table
 const API = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && window.location.port !== "5000"
   ? "http://localhost:5000/api"
-  : "/api";
+  : "https://cashbook-sql.onrender.com/api";
 
 async function loadAll() {
   const res = await fetch(`${API}/superadmin/all`);

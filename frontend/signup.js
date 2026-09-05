@@ -1,7 +1,7 @@
 // signup.js - registers a new user, then sends them to log in
 const API = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && window.location.port !== "5000"
   ? "http://localhost:5000/api"
-  : "/api";
+  : "https://cashbook-sql.onrender.com/api";
 
 // ---- Google Sign-In (Gmail OAuth) ----
 // Same Client ID as login.js - see README -> "Enabling Gmail Sign-In (Google OAuth)".

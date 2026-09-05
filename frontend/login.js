@@ -1,6 +1,6 @@
 const API = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && window.location.port !== "5000"
   ? "http://localhost:5000/api"
-  : "/api";
+  : "https://cashbook-sql.onrender.com/api";
 
 // ---- Google Sign-In (Gmail OAuth) ----
 // Paste your OAuth Client ID here (Google Cloud Console -> Credentials).
