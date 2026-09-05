@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Cashbook - List</title>
+  <link rel="stylesheet" href="shared.css" />
+  <link rel="stylesheet" href="cashbooks.css" />
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div>
+        <p style="margin:0;color:var(--navy);font-size:13px;">Welcome back,</p>
+        <h2 id="userName" style="margin:2px 0;">...</h2>
+      </div>
+      <a href="login.html" class="link-back" onclick="localStorage.clear()">Logout</a>
+    </div>
+
+    <h3 style="margin-bottom:12px;">List of Cashbooks</h3>
+    <div id="list"></div>
+
+    <a href="superadmin.html" class="link-back">Open Super Admin view →</a>
+  </div>
+
+  <!-- "+" opens the create-cashbook page -->
+  <button class="fab" onclick="location.href='add-cashbook.html'">+</button>
+
+  <script src="cashbooks.js"></script>
+</body>
+</html>

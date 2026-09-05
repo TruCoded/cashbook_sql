@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Cashbook - Detail</title>
+  <link rel="stylesheet" href="shared.css" />
+  <link rel="stylesheet" href="cashbook-detail.css" />
+</head>
+<body>
+  <div class="page">
+    <a href="cashbooks.html" class="link-back">← Back</a>
+    <h2 id="title" style="margin-top:16px;">...</h2>
+
+    <!-- Cash In / Cash Out / Balance -->
+    <div class="card">
+      <div class="stat-row">
+        <div class="stat"><div class="label">Cash In</div><div class="value" id="cashIn">0</div></div>
+        <div class="stat"><div class="label">Cash Out</div><div class="value" id="cashOut">0</div></div>
+        <div class="stat"><div class="label">Balance</div><div class="value" id="balance">0</div></div>
+      </div>
+
+      <label for="txnType">Add Entry</label>
+      <select id="txnType">
+        <option value="in">Cash In</option>
+        <option value="out">Cash Out</option>
+      </select>
+      <input id="txnAmount" type="number" placeholder="Amount" />
+      <input id="txnNote" placeholder="Note (optional)" />
+      <button class="btn full" onclick="addTransaction()">Add</button>
+    </div>
+
+    <!-- Add collaborator (person 2) via email OTP -->
+    <h3>Add Collaborator</h3>
+    <div class="card">
+      <label for="collabEmail">Collaborator Email</label>
+      <input id="collabEmail" type="email" placeholder="person2@example.com" />
+      <button class="btn full" onclick="requestOtp()">Send OTP</button>
+
+      <div id="otpStep" style="display:none;margin-top:14px;">
+        <label for="otpCode">Enter OTP</label>
+        <input id="otpCode" placeholder="6-digit code" />
+        <label for="accNum">Collaborator Bank Account No.</label>
+        <input id="accNum" placeholder="Account number" />
+        <label for="ifsc">IFSC Code</label>
+        <input id="ifsc" placeholder="IFSC code" />
+        <p id="collabErr" class="error"></p>
+        <button class="btn full" onclick="verifyAndAdd()">Verify &amp; Add Collaborator</button>
+      </div>
+    </div>
+  </div>
+  <script src="cashbook-detail.js"></script>
+</body>
+</html>

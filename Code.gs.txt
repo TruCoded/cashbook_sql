@@ -1,0 +1,68 @@
+// Code.gs - paste this into your existing Apps Script project (the one at
+// script.google.com you already have), replacing whatever is there now.
+//
+// IMPORTANT: fill in SHEET_ID below with your Google Sheet's ID (see
+// README.md for how to create the Sheet and find its ID), then use
+// Deploy > Manage deployments > Edit (pencil icon) > New version > Deploy
+// so your existing "/exec" URL picks up this change.
+
+const SHEET_ID = "PASTE_YOUR_GOOGLE_SHEET_ID_HERE";
+
+const TABS = { users: "Users", cashbooks: "Cashbooks", collaborators: "Collaborators", otps: "Otps" };
+const HEADERS = {
+  users: ["id", "name", "email", "password"],
+  cashbooks: ["id", "name", "ownerId", "partnerName", "partnerEmail", "transactions"],
+  collaborators: ["cashbookId", "collaboratorEmail", "accountNumber", "ifsc"],
+  otps: ["email", "code"],
+};
+
+function doPost(e) {
+  const body = JSON.parse(e.postData.contents);
+  let result;
+  if (body.action === "readDB") result = readDB();
+  else if (body.action === "writeDB") result = writeDB(body.db);
+  else if (body.action === "sendOtp") result = sendOtp(body.email, body.code);
+  else result = { error: "Unknown action" };
+  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function readDB() {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const db = {};
+  for (const key in TABS) {
+    const sheet = ss.getSheetByName(TABS[key]);
+    const rows = sheet.getDataRange().getValues().slice(1); // skip header row
+    db[key] = rows
+      .filter((row) => row[0] !== "")
+      .map((row) => {
+        const obj = {};
+        HEADERS[key].forEach((h, i) => {
+          obj[h] = h === "transactions" ? JSON.parse(row[i] || "[]") : row[i];
+        });
+        return obj;
+      });
+  }
+  return db;
+}
+
+function writeDB(db) {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  for (const key in TABS) {
+    const sheet = ss.getSheetByName(TABS[key]);
+    sheet.getRange(2, 1, Math.max(sheet.getMaxRows() - 1, 1), HEADERS[key].length).clearContent();
+    const rows = db[key].map((obj) =>
+      HEADERS[key].map((h) => (h === "transactions" ? JSON.stringify(obj[h] || []) : obj[h] || ""))
+    );
+    if (rows.length) sheet.getRange(2, 1, rows.length, HEADERS[key].length).setValues(rows);
+  }
+  return { ok: true };
+}
+
+function sendOtp(email, code) {
+  GmailApp.sendEmail(
+    email,
+    "Your My Cashbook OTP",
+    `Your OTP is ${code}. It is required to add you as a collaborator on a cashbook.`
+  );
+  return { sent: true };
+}

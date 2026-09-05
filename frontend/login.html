@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Cashbook - Login</title>
+  <link rel="stylesheet" href="shared.css" />
+  <link rel="stylesheet" href="login.css" />
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+  <div class="page" style="display:flex;flex-direction:column;justify-content:center;min-height:100vh;">
+    <p class="script" style="text-align:center;margin-bottom:-6px;">My</p>
+    <h1 style="text-align:center;margin-top:0;">CASHBOOK</h1>
+    <p style="text-align:center;color:var(--navy);margin-bottom:32px;">Track cash in, cash out and balance, together</p>
+
+    <div class="card">
+      <!-- Google fills this with its own "Sign in with Google" button (see login.js).
+           Empty/hidden automatically if GOOGLE_CLIENT_ID hasn't been set up yet. -->
+      <div id="google-btn" style="display:flex;justify-content:center;margin-bottom:6px;"></div>
+      <p class="or-divider">or sign in with email</p>
+
+      <label for="email">Email</label>
+      <input id="email" type="email" placeholder="trusha@example.com" value="trusha@example.com" />
+
+      <label for="password">Password</label>
+      <input id="password" type="password" placeholder="••••••••" value="trusha123" />
+
+      <p id="err" class="error"></p>
+      <button class="btn full" onclick="login()">Sign In</button>
+    </div>
+
+    <p class="auth-switch">New here? <a href="signup.html">Sign Up</a></p>
+  </div>
+  <script src="login.js"></script>
+</body>
+</html>

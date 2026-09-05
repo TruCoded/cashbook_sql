@@ -1,0 +1,33 @@
+# Environment variables
+.env
+.env.*
+.env.example
+*.env
+
+# Credentials & secrets
+*.pem
+*.key
+*.cert
+credentials.json
+secrets.json
+service-account*.json
+client_secret*.json
+token.json
+
+# Local data / database containing user credentials, OTPs, transactions
+data/
+*.db
+*.sqlite
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Cashbook - Super Admin</title>
+  <link rel="stylesheet" href="shared.css" />
+  <link rel="stylesheet" href="superadmin.css" />
+</head>
+<body>
+  <div class="page" style="max-width:700px;">
+    <a href="cashbooks.html" class="link-back">← Back</a>
+    <h2 style="margin-top:16px;">Super Admin <span class="script">Sheet</span></h2>
+    <p style="color:var(--navy);margin-top:-8px;">Every user's cashbooks and collaborators, in one place.</p>
+
+    <div class="card">
+      <table>
+        <thead>
+          <tr><th>Cashbook</th><th>Owner</th><th>Balance</th><th>Collaborators</th></tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </div>
+  <script src="superadmin.js"></script>
+</body>
+</html>

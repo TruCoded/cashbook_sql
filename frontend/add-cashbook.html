@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Cashbook - New Cashbook</title>
+  <link rel="stylesheet" href="shared.css" />
+  <link rel="stylesheet" href="add-cashbook.css" />
+</head>
+<body>
+  <div class="page">
+    <a href="cashbooks.html" class="link-back">← Back</a>
+    <h2 style="margin-top:16px;">Create a New <span class="script">Cashbook</span></h2>
+
+    <div class="card">
+      <label for="name">Name of Cashbook</label>
+      <input id="name" placeholder="e.g. List 3" />
+
+      <label for="partnerName">Partner / Nominee Name</label>
+      <input id="partnerName" placeholder="Who will be the nominee for this cash?" />
+
+      <label for="partnerEmail">Partner / Nominee Email</label>
+      <input id="partnerEmail" type="email" placeholder="partner@example.com" />
+
+      <p id="err" class="error"></p>
+      <button class="btn full" onclick="createCashbook()">Create New Sheet</button>
+    </div>
+  </div>
+  <script src="add-cashbook.js"></script>
+</body>
+</html>
