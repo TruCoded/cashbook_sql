@@ -7,7 +7,14 @@
     "start": "node backend/server.js",
     "postinstall": "cd backend && npm install"
   },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "google-auth-library": "^9.14.1"
+  },
   "keywords": [],
   "author": "TruCoded",
   "license": "MIT"
 }
+

@@ -28,16 +28,24 @@ function doPost(e) {
 
 function readDB() {
   const ss = SpreadsheetApp.openById(SHEET_ID);
-  const db = {};
+  const db = { users: [], cashbooks: [], collaborators: [], otps: [] };
   for (const key in TABS) {
     const sheet = ss.getSheetByName(TABS[key]);
-    const rows = sheet.getDataRange().getValues().slice(1); // skip header row
+    if (!sheet) continue;
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 2) continue; // no data rows
+    
+    const rows = sheet.getRange(2, 1, lastRow - 1, HEADERS[key].length).getValues();
     db[key] = rows
       .filter((row) => row[0] !== "")
       .map((row) => {
         const obj = {};
         HEADERS[key].forEach((h, i) => {
-          obj[h] = h === "transactions" ? JSON.parse(row[i] || "[]") : row[i];
+          if (h === "transactions") {
+            try { obj[h] = JSON.parse(row[i] || "[]"); } catch (e) { obj[h] = []; }
+          } else {
+            obj[h] = row[i];
+          }
         });
         return obj;
       });
@@ -49,11 +57,20 @@ function writeDB(db) {
   const ss = SpreadsheetApp.openById(SHEET_ID);
   for (const key in TABS) {
     const sheet = ss.getSheetByName(TABS[key]);
-    sheet.getRange(2, 1, Math.max(sheet.getMaxRows() - 1, 1), HEADERS[key].length).clearContent();
-    const rows = db[key].map((obj) =>
-      HEADERS[key].map((h) => (h === "transactions" ? JSON.stringify(obj[h] || []) : obj[h] || ""))
-    );
-    if (rows.length) sheet.getRange(2, 1, rows.length, HEADERS[key].length).setValues(rows);
+    if (!sheet) continue;
+    
+    const lastRow = sheet.getLastRow();
+    if (lastRow > 1) {
+      sheet.getRange(2, 1, lastRow - 1, HEADERS[key].length).clearContent();
+    }
+    
+    const data = db[key] || [];
+    if (data.length > 0) {
+      const rows = data.map((obj) =>
+        HEADERS[key].map((h) => (h === "transactions" ? JSON.stringify(obj[h] || []) : (obj[h] !== undefined ? obj[h] : "")))
+      );
+      sheet.getRange(2, 1, rows.length, HEADERS[key].length).setValues(rows);
+    }
   }
   return { ok: true };
 }

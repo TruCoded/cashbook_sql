@@ -1,7 +1,6 @@
-// signup.js - registers a new user, then sends them to log in
-const API = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && window.location.port !== "5000"
-  ? "http://localhost:5000/api"
-  : "https://cashbook-sql.onrender.com/api";
+const isLocal = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && window.location.port !== "5000";
+const API = isLocal ? "http://localhost:5000/api" : "/api";
+
 
 // ---- Google Sign-In (Gmail OAuth) ----
 // Same Client ID as login.js - see README -> "Enabling Gmail Sign-In (Google OAuth)".
@@ -18,36 +17,76 @@ window.onload = () => {
 // One tap here both creates the account (first time) and logs in (every time
 // after) - Google itself already verified the email, so no password is needed.
 async function onGoogleSignIn(response) {
-  const res = await fetch(`${API}/auth/google`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ credential: response.credential }),
-  });
-  if (!res.ok) {
-    document.getElementById("err").textContent = "Google sign-in failed";
-    return;
+  const errEl = document.getElementById("err");
+  if (errEl) errEl.textContent = "Verifying with Google...";
+  try {
+    const res = await fetch(`${API}/auth/google`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ credential: response.credential }),
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      document.getElementById("err").textContent = errData.error || "Google sign-in failed";
+      return;
+    }
+    const user = await res.json();
+    localStorage.setItem("user", JSON.stringify(user));
+    window.location.href = "cashbooks.html"; // signed up AND logged in, straight to the app
+  } catch (err) {
+    console.error("Google signup error:", err);
+    if (errEl) errEl.textContent = "Could not connect to server. Please wait ~30s if server was sleeping and retry.";
   }
-  const user = await res.json();
-  localStorage.setItem("user", JSON.stringify(user));
-  window.location.href = "cashbooks.html"; // signed up AND logged in, straight to the app
 }
 
 async function signup() {
-  const name = document.getElementById("name").value;
-  const email = document.getElementById("email").value;
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
+  const errEl = document.getElementById("err");
+  const btn = document.querySelector(".btn.full");
 
-  const res = await fetch(`${API}/signup`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, email, password }),
-  });
-
-  if (!res.ok) {
-    const { error } = await res.json();
-    document.getElementById("err").textContent = error || "Could not sign up";
+  if (!name || !email || !password) {
+    if (errEl) errEl.textContent = "Please fill in all fields";
     return;
   }
 
-  window.location.href = "login.html"; // account created, sign in next
+  const originalBtnText = btn ? btn.textContent : "Sign Up";
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "Creating account...";
+  }
+  if (errEl) errEl.textContent = "";
+
+  const slowTimer = setTimeout(() => {
+    if (btn) btn.textContent = "Waking up server (free tier delay)...";
+  }, 4000);
+
+  try {
+    const res = await fetch(`${API}/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password }),
+    });
+
+    clearTimeout(slowTimer);
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      if (errEl) errEl.textContent = data.error || "Could not sign up";
+      return;
+    }
+
+    window.location.href = "login.html"; // account created, sign in next
+  } catch (err) {
+    clearTimeout(slowTimer);
+    console.error("Signup error:", err);
+    if (errEl) errEl.textContent = "Cannot connect to server. If Render was sleeping, please wait a moment and try again.";
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = originalBtnText;
+    }
+  }
 }
+

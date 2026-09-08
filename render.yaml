@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: cashbook-sql
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node backend/server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: APPS_SCRIPT_URL
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
