@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "My Cashbook",
+    "slug": "my-cashbook",
+    "scheme": "mycashbook",
+    "version": "1.0.0",
+    "sdkVersion": "57.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#f6f2ea"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.warnallabs.mycashbook"
+    },
+    "android": {
+      "package": "com.warnallabs.mycashbook"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "PASTE_YOUR_EAS_PROJECT_ID_HERE"
+      }
+    },
+    "plugins": [
+      "expo-asset",
+      "expo-status-bar",
+      "expo-font",
+      "expo-web-browser"
+    ]
+  }
+}

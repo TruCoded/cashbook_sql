@@ -85,3 +85,15 @@ Desktop.ini
 dist/
 build/
 coverage/
+
+# ==========================================
+# React Native / Expo Mobile
+# ==========================================
+.expo/
+mobile/.expo/
+mobile/node_modules/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
