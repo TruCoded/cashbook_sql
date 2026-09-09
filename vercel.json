@@ -1,0 +1,41 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://cashbook-sql.onrender.com/api/:path*"
+    },
+    {
+      "source": "/",
+      "destination": "/website/frontend/login.html"
+    },
+    {
+      "source": "/login",
+      "destination": "/website/frontend/login.html"
+    },
+    {
+      "source": "/signup",
+      "destination": "/website/frontend/signup.html"
+    },
+    {
+      "source": "/cashbooks",
+      "destination": "/website/frontend/cashbooks.html"
+    },
+    {
+      "source": "/add-cashbook",
+      "destination": "/website/frontend/add-cashbook.html"
+    },
+    {
+      "source": "/cashbook-detail",
+      "destination": "/website/frontend/cashbook-detail.html"
+    },
+    {
+      "source": "/superadmin",
+      "destination": "/website/frontend/superadmin.html"
+    },
+    {
+      "source": "/((?!_vercel).*)",
+      "destination": "/website/frontend/$1"
+    }
+  ]
+}

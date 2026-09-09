@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: cashbook-sql
+    env: node
+    plan: free
+    buildCommand: cd website/backend && npm install
+    startCommand: cd website/backend && node server.js
+    healthCheckPath: /api/superadmin/all
+    envVars:
+      - key: APPS_SCRIPT_URL
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GMAIL_USER
+        sync: false
+      - key: GMAIL_APP_PASSWORD
+        sync: false
