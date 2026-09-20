@@ -2,9 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>My Cashbook - Sign Up</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Cashbook - Sign Up</title>
   <link rel="stylesheet" href="shared.css" />
   <link rel="stylesheet" href="signup.css" />
+  <script src="theme.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <!-- Vercel Web Analytics & Speed Insights -->
   <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
@@ -13,31 +15,41 @@
   <script defer src="/_vercel/speed-insights/script.js"></script>
 </head>
 <body>
-  <div class="page" style="display:flex;flex-direction:column;justify-content:center;min-height:100vh;">
-    <p class="script" style="text-align:center;margin-bottom:-6px;">Join</p>
-    <h1 style="text-align:center;margin-top:0;">MY CASHBOOK</h1>
-    <p style="text-align:center;color:var(--navy);margin-bottom:32px;">Create an account to start tracking</p>
-
-    <div class="card">
-      <!-- Google fills this with its own "Sign up with Google" button (see signup.js).
-           One tap creates the account AND logs in - no password to choose at all. -->
-      <div id="google-btn" style="display:flex;justify-content:center;margin-bottom:6px;"></div>
-      <p class="or-divider">or sign up with email</p>
-
-      <label for="name">Name</label>
-      <input id="name" placeholder="Your name" />
-
-      <label for="email">Email</label>
-      <input id="email" type="email" placeholder="you@example.com" />
-
-      <label for="password">Password</label>
-      <input id="password" type="password" placeholder="Choose a password" />
-
-      <p id="err" class="error"></p>
-      <button class="btn full" onclick="signup()">Sign Up</button>
+  <div class="page" style="justify-content:center;">
+    <!-- Theme Toggle at top right -->
+    <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+      <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Theme">☀️</button>
     </div>
 
-    <p class="auth-switch">Already have an account? <a href="login.html">Sign In</a></p>
+    <!-- Brand Header -->
+    <div style="text-align:center;margin-bottom:30px;">
+      <div style="width:58px;height:58px;border-radius:18px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:inline-flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 8px 24px var(--accent-purple-glow);margin-bottom:14px;">
+        ✨
+      </div>
+      <h1 style="font-size:28px;font-weight:800;letter-spacing:-0.03em;margin-bottom:6px;">Create Account</h1>
+      <p style="color:var(--text-secondary);font-size:14px;margin:0;">Start tracking cash flows with zero hassle</p>
+    </div>
+
+    <!-- Sign Up Card -->
+    <div class="card" style="padding:28px 22px;">
+      <!-- Google Sign Up -->
+      <div id="google-btn" style="display:flex;justify-content:center;margin-bottom:8px;"></div>
+      <div class="or-divider">or register with email</div>
+
+      <label for="name">Full Name</label>
+      <input id="name" placeholder="Alex Morgan" />
+
+      <label for="email">Email Address</label>
+      <input id="email" type="email" placeholder="alex@example.com" />
+
+      <label for="password">Password</label>
+      <input id="password" type="password" placeholder="Create a secure password" />
+
+      <p id="err" class="error"></p>
+      <button class="btn full" onclick="signup()">Create Account →</button>
+    </div>
+
+    <p class="auth-switch">Already registered? <a href="login.html">Sign In</a></p>
   </div>
   <script src="signup.js"></script>
 </body>

@@ -2,9 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>My Cashbook - New Cashbook</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Cashbook - Create Book</title>
   <link rel="stylesheet" href="shared.css" />
   <link rel="stylesheet" href="add-cashbook.css" />
+  <script src="theme.js"></script>
   <!-- Vercel Web Analytics & Speed Insights -->
   <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
   <script defer src="/_vercel/insights/script.js"></script>
@@ -13,21 +15,28 @@
 </head>
 <body>
   <div class="page">
-    <a href="cashbooks.html" class="link-back">← Back</a>
-    <h2 style="margin-top:16px;">Create a New <span class="script">Cashbook</span></h2>
+    <div class="topbar">
+      <a href="cashbooks.html" class="link-back" style="margin-bottom:0;">← Back</a>
+      <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Theme">☀️</button>
+    </div>
 
-    <div class="card">
-      <label for="name">Name of Cashbook</label>
-      <input id="name" placeholder="e.g. List 3" />
+    <div style="margin-bottom:24px;">
+      <h2 style="font-size:24px;font-weight:800;letter-spacing:-0.02em;margin-bottom:4px;">New Cashbook</h2>
+      <p style="color:var(--text-secondary);font-size:13px;margin:0;">Create a new financial ledger to record cash transactions</p>
+    </div>
 
-      <label for="partnerName">Partner / Nominee Name</label>
-      <input id="partnerName" placeholder="Who will be the nominee for this cash?" />
+    <div class="card" style="padding:24px 20px;">
+      <label for="name">Cashbook Name</label>
+      <input id="name" placeholder="e.g. Daily Expenses, Trip to Goa, Business Ledger" />
 
-      <label for="partnerEmail">Partner / Nominee Email</label>
+      <label for="partnerName">Partner / Nominee Name (Optional)</label>
+      <input id="partnerName" placeholder="e.g. Simran, Alex" />
+
+      <label for="partnerEmail">Partner / Nominee Email (Optional)</label>
       <input id="partnerEmail" type="email" placeholder="partner@example.com" />
 
       <p id="err" class="error"></p>
-      <button class="btn full" onclick="createCashbook()">Create Cashbook</button>
+      <button class="btn full" onclick="createCashbook()">+ Create Cashbook</button>
     </div>
   </div>
   <script src="add-cashbook.js"></script>

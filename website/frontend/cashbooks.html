@@ -2,9 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>My Cashbook - List</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Cashbook - My Accounts</title>
   <link rel="stylesheet" href="shared.css" />
   <link rel="stylesheet" href="cashbooks.css" />
+  <script src="theme.js"></script>
   <!-- Vercel Web Analytics & Speed Insights -->
   <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
   <script defer src="/_vercel/insights/script.js"></script>
@@ -13,22 +15,77 @@
 </head>
 <body>
   <div class="page">
+    <!-- Topbar Profile & Controls -->
     <div class="topbar">
-      <div>
-        <p style="margin:0;color:var(--navy);font-size:13px;">Welcome back,</p>
-        <h2 id="userName" style="margin:2px 0;">...</h2>
+      <div class="user-profile-row">
+        <div class="user-avatar" id="userAvatar">U</div>
+        <div>
+          <div class="greeting-text">Welcome back,</div>
+          <div class="user-name-title" id="userName">User</div>
+        </div>
       </div>
-      <a href="login.html" class="link-back" onclick="localStorage.clear()">Logout</a>
+      <div class="header-actions">
+        <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Theme">☀️</button>
+        <a href="login.html" class="theme-toggle-btn" onclick="localStorage.clear()" title="Sign Out" style="text-decoration:none;">⏻</a>
+      </div>
     </div>
 
-    <h3 style="margin-bottom:12px;">List of Cashbooks</h3>
-    <div id="list"></div>
+    <!-- Total Balance Hero Card -->
+    <div class="hero-balance-card">
+      <div class="hero-balance-label">
+        <span>Total Net Balance</span>
+        <span style="font-size:11px;opacity:0.8;">LIVE</span>
+      </div>
+      <div class="hero-balance-val" id="totalNetBalance">₹0.00</div>
+      <div class="hero-balance-chip">
+        <span>↑</span>
+        <span id="cashbookCount">0 Cashbooks</span>
+      </div>
 
-    <a href="superadmin.html" class="link-back">Open Super Admin view →</a>
+      <!-- Fintech Wave SVG -->
+      <svg class="hero-sparkline" viewBox="0 0 500 60" fill="none" preserveAspectRatio="none">
+        <path d="M0 45 Q 60 20, 120 35 T 240 15 T 360 40 T 440 10 T 500 25" stroke="#8b5cf6" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M0 45 Q 60 20, 120 35 T 240 15 T 360 40 T 440 10 T 500 25 L 500 60 L 0 60 Z" fill="url(#sparklineGrad)" opacity="0.25"/>
+        <defs>
+          <linearGradient id="sparklineGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#8b5cf6"/>
+            <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+
+    <!-- Quick Action Pills -->
+    <div class="action-grid">
+      <a href="add-cashbook.html" class="action-btn-item">
+        <div class="action-icon-circle">＋</div>
+        <span>New Book</span>
+      </a>
+      <a href="superadmin.html" class="action-btn-item">
+        <div class="action-icon-circle">📊</div>
+        <span>Overview</span>
+      </a>
+      <button onclick="loadCashbooks()" class="action-btn-item">
+        <div class="action-icon-circle">↻</div>
+        <span>Refresh</span>
+      </button>
+      <a href="login.html" onclick="localStorage.clear()" class="action-btn-item">
+        <div class="action-icon-circle">🔒</div>
+        <span>Logout</span>
+      </a>
+    </div>
+
+    <!-- Cashbooks List Header -->
+    <div class="section-header">
+      <h3 class="section-title">My Cashbooks</h3>
+      <a href="add-cashbook.html" class="section-link">+ Create New</a>
+    </div>
+
+    <div id="list"></div>
   </div>
 
-  <!-- "+" opens the create-cashbook page -->
-  <button class="fab" onclick="location.href='add-cashbook.html'">+</button>
+  <!-- Mobile Floating + Button -->
+  <button class="fab" onclick="location.href='add-cashbook.html'" title="Create Cashbook">+</button>
 
   <script src="cashbooks.js"></script>
 </body>

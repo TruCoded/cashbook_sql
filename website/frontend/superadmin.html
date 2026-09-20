@@ -2,9 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>My Cashbook - Super Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Cashbook - Super Admin</title>
   <link rel="stylesheet" href="shared.css" />
   <link rel="stylesheet" href="superadmin.css" />
+  <script src="theme.js"></script>
   <!-- Vercel Web Analytics & Speed Insights -->
   <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
   <script defer src="/_vercel/insights/script.js"></script>
@@ -12,18 +14,49 @@
   <script defer src="/_vercel/speed-insights/script.js"></script>
 </head>
 <body>
-  <div class="page" style="max-width:700px;">
-    <a href="cashbooks.html" class="link-back">← Back</a>
-    <h2 style="margin-top:16px;">Super Admin <span class="script">Dashboard</span></h2>
-    <p style="color:var(--navy);margin-top:-8px;">Every user's cashbooks and collaborators, in one place.</p>
+  <div class="page wide">
+    <!-- Header -->
+    <div class="topbar">
+      <a href="cashbooks.html" class="link-back" style="margin-bottom:0;">← Back</a>
+      <div class="header-actions">
+        <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Theme">☀️</button>
+      </div>
+    </div>
 
-    <div class="card">
-      <table>
-        <thead>
-          <tr><th>Cashbook</th><th>Owner</th><th>Balance</th><th>Collaborators</th></tr>
-        </thead>
-        <tbody id="rows"></tbody>
-      </table>
+    <div style="margin-bottom:20px;">
+      <h2 style="font-size:26px;font-weight:800;letter-spacing:-0.02em;margin-bottom:4px;">Super Admin Dashboard</h2>
+      <p style="color:var(--text-secondary);font-size:13px;margin:0;">Global overview of all registered cashbooks, owners, and collaborators</p>
+    </div>
+
+    <!-- Summary Stats -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:14px;margin-bottom:20px;">
+      <div class="card" style="margin-bottom:0;padding:18px;">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--text-secondary);">Total Cashbooks</div>
+        <div id="statTotalBooks" style="font-size:26px;font-weight:800;color:var(--text-primary);margin-top:4px;">...</div>
+      </div>
+      <div class="card" style="margin-bottom:0;padding:18px;">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--text-secondary);">Global Net Balance</div>
+        <div id="statGlobalBalance" style="font-size:26px;font-weight:800;color:var(--accent-purple);margin-top:4px;">...</div>
+      </div>
+    </div>
+
+    <!-- Responsive Table Card -->
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Cashbook Name</th>
+              <th>Owner</th>
+              <th>Balance</th>
+              <th>Collaborators</th>
+            </tr>
+          </thead>
+          <tbody id="rows">
+            <tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-secondary);">Loading master ledger data...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
   <script src="superadmin.js"></script>

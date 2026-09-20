@@ -281,9 +281,12 @@ app.post("/api/cashbooks/:id/transactions", async (req, res) => {
         note: note || "",
         date: new Date(),
       });
-      await cb.save();
+      const txns = cb.transactions || [];
+      const cashIn = txns.filter((t) => t.type === "in").reduce((s, t) => s + Number(t.amount), 0);
+      const cashOut = txns.filter((t) => t.type === "out").reduce((s, t) => s + Number(t.amount), 0);
+      const balance = cashIn - cashOut;
 
-      return res.json({ balance: balanceOf(cb) });
+      return res.json({ success: true, balance, cashIn, cashOut, transactions: txns });
     }
 
     // Fallback
@@ -291,9 +294,15 @@ app.post("/api/cashbooks/:id/transactions", async (req, res) => {
     const cb = (db.cashbooks || []).find((c) => c.id === req.params.id);
     if (!cb) return res.status(404).json({ error: "Cashbook not found" });
 
-    cb.transactions.push({ type, amount: Number(amount), note: note || "" });
+    cb.transactions.push({ type, amount: Number(amount), note: note || "", date: new Date() });
     writeLocalDB(db);
-    res.json({ balance: balanceOf(cb) });
+
+    const txns = cb.transactions || [];
+    const cashIn = txns.filter((t) => t.type === "in").reduce((s, t) => s + Number(t.amount), 0);
+    const cashOut = txns.filter((t) => t.type === "out").reduce((s, t) => s + Number(t.amount), 0);
+    const balance = cashIn - cashOut;
+
+    res.json({ success: true, balance, cashIn, cashOut, transactions: txns });
   } catch (err) {
     console.error("Add transaction error:", err);
     res.status(500).json({ error: "Failed to add transaction" });
