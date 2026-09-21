@@ -14,29 +14,46 @@
   <script defer src="/_vercel/speed-insights/script.js"></script>
 </head>
 <body>
-  <div class="page wide">
-    <!-- Header -->
-    <div class="topbar">
-      <a href="cashbooks.html" class="link-back" style="margin-bottom:0;">← Back</a>
-      <div class="header-actions">
+  <!-- Full-Screen Top Navbar -->
+  <header class="app-navbar">
+    <div class="navbar-inner">
+      <a href="cashbooks.html" class="brand-logo-wrap">
+        <img src="logo.png" class="brand-logo-img" alt="Cashbook" />
+        <span class="brand-tag">ADMIN</span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="cashbooks.html" class="nav-link">Dashboard</a>
+        <a href="analytics.html" class="nav-link">Analytics</a>
+        <a href="collaborators.html" class="nav-link">Collaborators</a>
+        <a href="superadmin.html" class="nav-link active">Admin Ledger</a>
+      </nav>
+
+      <div class="nav-right-actions">
         <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Theme">☀️</button>
+        <a href="cashbooks.html" class="btn secondary" style="padding:8px 16px;font-size:12px;">← Dashboard</a>
       </div>
     </div>
+  </header>
 
-    <div style="margin-bottom:20px;">
-      <h2 style="font-size:26px;font-weight:800;letter-spacing:-0.02em;margin-bottom:4px;">Super Admin Dashboard</h2>
-      <p style="color:var(--text-secondary);font-size:13px;margin:0;">Global overview of all registered cashbooks, owners, and collaborators</p>
+  <main class="page-container">
+    <div style="margin-bottom:28px;">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--blue-light);letter-spacing:0.06em;margin-bottom:6px;">
+        MASTER LEDGER OVERVIEW
+      </div>
+      <h1 style="font-size:36px;font-weight:800;letter-spacing:-0.03em;margin-bottom:6px;color:var(--text-primary);">Super Admin Dashboard</h1>
+      <p style="color:var(--text-secondary);font-size:15px;margin:0;">Global overview of all registered cashbooks, owners, and active collaborators across MongoDB</p>
     </div>
 
     <!-- Summary Stats -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:14px;margin-bottom:20px;">
-      <div class="card" style="margin-bottom:0;padding:18px;">
-        <div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--text-secondary);">Total Cashbooks</div>
-        <div id="statTotalBooks" style="font-size:26px;font-weight:800;color:var(--text-primary);margin-top:4px;">...</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:16px;margin-bottom:24px;">
+      <div class="card" style="margin-bottom:0;padding:22px;">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text-secondary);">Total Cashbooks in System</div>
+        <div id="statTotalBooks" style="font-size:32px;font-weight:800;color:var(--text-primary);margin-top:4px;">...</div>
       </div>
-      <div class="card" style="margin-bottom:0;padding:18px;">
-        <div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--text-secondary);">Global Net Balance</div>
-        <div id="statGlobalBalance" style="font-size:26px;font-weight:800;color:var(--accent-purple);margin-top:4px;">...</div>
+      <div class="card" style="margin-bottom:0;padding:22px;">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text-secondary);">Global Cumulative Balance</div>
+        <div id="statGlobalBalance" style="font-size:32px;font-weight:800;color:var(--blue-light);margin-top:4px;">...</div>
       </div>
     </div>
 
@@ -53,12 +70,13 @@
             </tr>
           </thead>
           <tbody id="rows">
-            <tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-secondary);">Loading master ledger data...</td></tr>
+            <tr><td colspan="4" style="text-align:center;padding:28px;color:var(--text-secondary);">Loading master ledger data...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
-  </div>
+  </main>
+
   <script src="superadmin.js"></script>
 </body>
 </html>

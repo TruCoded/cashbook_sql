@@ -8,19 +8,19 @@
     const next = current === "dark" ? "light" : "dark";
     document.documentElement.setAttribute("data-theme", next);
     localStorage.setItem("cashbook_theme", next);
-    updateThemeIcon(next);
+    updateThemeIcons(next);
   };
 
-  function updateThemeIcon(theme) {
-    const btn = document.getElementById("theme-toggle-btn");
-    if (btn) {
+  function updateThemeIcons(theme) {
+    const buttons = document.querySelectorAll(".theme-toggle-btn");
+    buttons.forEach((btn) => {
       btn.innerHTML = theme === "dark" ? "☀️" : "🌙";
       btn.setAttribute("title", theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode");
-    }
+    });
   }
 
   window.addEventListener("DOMContentLoaded", () => {
     const current = document.documentElement.getAttribute("data-theme") || "dark";
-    updateThemeIcon(current);
+    updateThemeIcons(current);
   });
 })();

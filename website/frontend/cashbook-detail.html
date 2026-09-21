@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Cashbook - Details</title>
+  <title>Cashbook - Ledger Detail</title>
   <link rel="stylesheet" href="shared.css" />
   <link rel="stylesheet" href="cashbook-detail.css" />
   <script src="theme.js"></script>
@@ -12,38 +12,74 @@
   <script defer src="/_vercel/insights/script.js"></script>
   <script>window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };</script>
   <script defer src="/_vercel/speed-insights/script.js"></script>
+  <style>
+    .detail-layout-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 24px;
+      margin-top: 24px;
+    }
+    @media (max-width: 900px) {
+      .detail-layout-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
-  <div class="page">
-    <!-- Header -->
-    <div class="topbar">
-      <a href="cashbooks.html" class="link-back" style="margin-bottom:0;">← Back</a>
-      <div class="header-actions">
+  <!-- Full-Screen Top Navbar -->
+  <header class="app-navbar">
+    <div class="navbar-inner">
+      <a href="cashbooks.html" class="brand-logo-wrap">
+        <img src="logo.png" class="brand-logo-img" alt="Cashbook" />
+        <span class="brand-tag">LEDGER</span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="cashbooks.html" class="nav-link">Dashboard</a>
+        <a href="analytics.html" class="nav-link">Analytics</a>
+        <a href="collaborators.html" class="nav-link">Collaborators</a>
+        <a href="superadmin.html" class="nav-link">Admin Ledger</a>
+      </nav>
+
+      <div class="nav-right-actions">
         <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Theme">☀️</button>
+        <a href="cashbooks.html" class="btn secondary" style="padding:8px 16px;font-size:12px;">← All Books</a>
       </div>
     </div>
+  </header>
 
-    <!-- Title & Nominee Info -->
-    <div style="margin-bottom: 18px;">
-      <h2 id="title" style="font-size:24px;margin-bottom:4px;">Cashbook</h2>
-      <p id="partnerBadge" style="font-size:12px;color:var(--text-secondary);margin:0;display:none;"></p>
+  <main class="page-container">
+    <!-- Header Breadcrumb & Title -->
+    <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px;">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary);font-weight:600;margin-bottom:6px;">
+          <a href="cashbooks.html" style="color:var(--blue-light);text-decoration:none;">Dashboard</a>
+          <span>/</span>
+          <span>Ledger Detail</span>
+        </div>
+        <h1 id="title" style="font-size:32px;font-weight:800;letter-spacing:-0.03em;color:var(--text-primary);margin:0;">...</h1>
+        <p id="partnerBadge" style="font-size:13px;color:var(--text-secondary);margin-top:4px;display:none;"></p>
+      </div>
+
+      <a href="add-cashbook.html" class="btn secondary" style="font-size:13px;padding:10px 20px;">+ New Book</a>
     </div>
 
-    <!-- Total Balance Hero Card -->
+    <!-- Hero Balance Banner -->
     <div class="hero-balance-card">
       <div class="hero-balance-label">
-        <span>Available Balance</span>
-        <span style="font-size:11px;opacity:0.8;">LEDGER</span>
+        <span>Available Book Balance</span>
+        <span style="font-size:11px;color:var(--blue-light);font-weight:700;">● REAL-TIME LEDGER</span>
       </div>
       <div class="hero-balance-val" id="balance">₹0.00</div>
 
       <svg class="hero-sparkline" viewBox="0 0 500 60" fill="none" preserveAspectRatio="none">
-        <path d="M0 50 Q 80 15, 160 40 T 320 20 T 480 30" stroke="#8b5cf6" stroke-width="3" fill="none" stroke-linecap="round"/>
-        <path d="M0 50 Q 80 15, 160 40 T 320 20 T 480 30 L 500 60 L 0 60 Z" fill="url(#sparklineGradDetail)" opacity="0.25"/>
+        <path d="M0 45 Q 80 15, 160 38 T 320 20 T 480 30" stroke="#3b82f6" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M0 45 Q 80 15, 160 38 T 320 20 T 480 30 L 500 60 L 0 60 Z" fill="url(#blueWaveDetail)" opacity="0.2"/>
         <defs>
-          <linearGradient id="sparklineGradDetail" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#8b5cf6"/>
-            <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>
+          <linearGradient id="blueWaveDetail" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#3b82f6"/>
+            <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
           </linearGradient>
         </defs>
       </svg>
@@ -52,83 +88,90 @@
         <div class="stat-pill">
           <div class="stat-icon in">↓</div>
           <div class="stat-content">
-            <div class="stat-label">Total In</div>
+            <div class="stat-label">Total Cash In</div>
             <div class="stat-amount" id="cashIn">₹0.00</div>
           </div>
         </div>
         <div class="stat-pill">
           <div class="stat-icon out">↑</div>
           <div class="stat-content">
-            <div class="stat-label">Total Out</div>
+            <div class="stat-label">Total Cash Out</div>
             <div class="stat-amount" id="cashOut">₹0.00</div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Add Transaction Card (Fintech Segmented Control) -->
-    <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-        <span style="font-size:14px;font-weight:700;color:var(--text-primary);">New Transaction</span>
-        <span style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;">Instant Entry</span>
+    <!-- 2-Column Responsive Layout: Transactions Left, Controls Right -->
+    <div class="detail-layout-grid">
+      <!-- Left Column: Transactions List -->
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <h2 style="font-size:20px;font-weight:800;color:var(--text-primary);letter-spacing:-0.02em;">Recent Transactions</h2>
+          <span id="txnCountBadge" style="font-size:12px;color:var(--text-secondary);font-weight:600;background:var(--surface-elevated);padding:3px 10px;border-radius:999px;border:1px solid var(--surface-border);">0 entries</span>
+        </div>
+
+        <div id="txnList">
+          <div class="card" style="text-align:center;padding:32px;color:var(--text-secondary);">Loading transactions...</div>
+        </div>
       </div>
 
-      <!-- Segmented Buttons -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
-        <button id="btnTypeIn" type="button" class="btn" style="background:var(--accent-green-bg);color:var(--accent-green);border:1px solid rgba(16,185,129,0.3);box-shadow:none;padding:10px;" onclick="setEntryType('in')">
-          ↓ Cash In
-        </button>
-        <button id="btnTypeOut" type="button" class="btn secondary" style="padding:10px;" onclick="setEntryType('out')">
-          ↑ Cash Out
-        </button>
+      <!-- Right Column: Fast Record Entry & Collaborators -->
+      <div>
+        <!-- Fast Entry Card -->
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <h3 style="font-size:17px;font-weight:700;margin:0;">Record Entry</h3>
+            <span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--blue-light);">Quick Action</span>
+          </div>
+
+          <!-- In / Out Buttons -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+            <button id="btnTypeIn" type="button" class="btn" style="background:var(--accent-green-bg);color:var(--accent-green);border:1px solid rgba(16,185,129,0.3);box-shadow:none;padding:12px;" onclick="setEntryType('in')">
+              ↓ Cash In
+            </button>
+            <button id="btnTypeOut" type="button" class="btn secondary" style="padding:12px;" onclick="setEntryType('out')">
+              ↑ Cash Out
+            </button>
+          </div>
+
+          <input type="hidden" id="txnType" value="in" />
+
+          <label for="txnAmount">Amount (₹)</label>
+          <input id="txnAmount" type="number" step="any" placeholder="0.00" style="font-size:20px;font-weight:800;" />
+
+          <label for="txnNote">Note / Description</label>
+          <input id="txnNote" placeholder="e.g. Salary, Client payment, Groceries" />
+
+          <button class="btn full" onclick="addTransaction()">+ Record Entry</button>
+        </div>
+
+        <!-- Collaborators Card -->
+        <div class="card">
+          <h3 style="font-size:17px;font-weight:700;margin-bottom:4px;">Invite Collaborator</h3>
+          <p style="font-size:12px;color:var(--text-secondary);margin:0 0 16px;">Add a nominee or trusted partner to this specific ledger</p>
+
+          <label for="collabEmail">Collaborator Gmail / Email</label>
+          <input id="collabEmail" type="email" placeholder="partner@example.com" />
+          <button class="btn full secondary" onclick="requestOtp()">Send Verification OTP</button>
+
+          <div id="otpStep" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--surface-border);">
+            <label for="otpCode">Enter 6-Digit OTP</label>
+            <input id="otpCode" placeholder="123456" maxlength="6" />
+
+            <label for="accNum">Bank Account Number (Optional)</label>
+            <input id="accNum" placeholder="Account Number" />
+
+            <label for="ifsc">IFSC Code (Optional)</label>
+            <input id="ifsc" placeholder="e.g. HDFC0001234" />
+
+            <p id="collabErr" class="error"></p>
+            <button class="btn full" onclick="verifyAndAdd()">Verify &amp; Add Collaborator</button>
+          </div>
+        </div>
       </div>
-
-      <input type="hidden" id="txnType" value="in" />
-
-      <label for="txnAmount">Amount (₹)</label>
-      <input id="txnAmount" type="number" step="any" placeholder="0.00" style="font-size:18px;font-weight:700;" />
-
-      <label for="txnNote">Note / Description</label>
-      <input id="txnNote" placeholder="e.g. Salary, Groceries, Rent, Coffee" />
-
-      <button class="btn full" onclick="addTransaction()">+ Record Entry</button>
     </div>
-
-    <!-- Recent Transactions Section -->
-    <div class="section-header">
-      <h3 class="section-title">Recent Transactions</h3>
-      <span id="txnCountBadge" style="font-size:12px;color:var(--text-secondary);font-weight:600;">0 entries</span>
-    </div>
-
-    <div id="txnList">
-      <div class="card" style="text-align:center;color:var(--text-secondary);padding:24px;">No transactions recorded yet.</div>
-    </div>
-
-    <!-- Add Collaborator Card -->
-    <div class="section-header" style="margin-top:32px;">
-      <h3 class="section-title">Invite Collaborator</h3>
-    </div>
-
-    <div class="card">
-      <label for="collabEmail">Collaborator Gmail / Email</label>
-      <input id="collabEmail" type="email" placeholder="partner@example.com" />
-      <button class="btn full secondary" onclick="requestOtp()">Send Verification OTP</button>
-
-      <div id="otpStep" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--surface-border);">
-        <label for="otpCode">Enter 6-Digit OTP</label>
-        <input id="otpCode" placeholder="123456" maxlength="6" />
-
-        <label for="accNum">Bank Account Number (Optional)</label>
-        <input id="accNum" placeholder="Account Number" />
-
-        <label for="ifsc">IFSC Code (Optional)</label>
-        <input id="ifsc" placeholder="e.g. HDFC0001234" />
-
-        <p id="collabErr" class="error"></p>
-        <button class="btn full" onclick="verifyAndAdd()">Verify &amp; Add Collaborator</button>
-      </div>
-    </div>
-  </div>
+  </main>
 
   <script src="cashbook-detail.js"></script>
 </body>

@@ -14,20 +14,40 @@
   <script defer src="/_vercel/speed-insights/script.js"></script>
 </head>
 <body>
-  <div class="page">
-    <div class="topbar">
-      <a href="cashbooks.html" class="link-back" style="margin-bottom:0;">← Back</a>
-      <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Theme">☀️</button>
+  <!-- Full-Screen Top Navbar -->
+  <header class="app-navbar">
+    <div class="navbar-inner">
+      <a href="cashbooks.html" class="brand-logo-wrap">
+        <img src="logo.png" class="brand-logo-img" alt="Cashbook" />
+        <span class="brand-tag">CREATE</span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="cashbooks.html" class="nav-link">Dashboard</a>
+        <a href="analytics.html" class="nav-link">Analytics</a>
+        <a href="collaborators.html" class="nav-link">Collaborators</a>
+        <a href="superadmin.html" class="nav-link">Admin Ledger</a>
+      </nav>
+
+      <div class="nav-right-actions">
+        <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Theme">☀️</button>
+        <a href="cashbooks.html" class="btn secondary" style="padding:8px 16px;font-size:12px;">← Back</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-container" style="max-width:680px;">
+    <div style="margin-bottom:28px;">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--blue-light);letter-spacing:0.06em;margin-bottom:6px;">
+        NEW FINANCIAL LEDGER
+      </div>
+      <h1 style="font-size:32px;font-weight:800;letter-spacing:-0.03em;margin-bottom:6px;color:var(--text-primary);">Create Cashbook</h1>
+      <p style="color:var(--text-secondary);font-size:14px;margin:0;">Initialize a dedicated cash ledger for personal or shared expenses</p>
     </div>
 
-    <div style="margin-bottom:24px;">
-      <h2 style="font-size:24px;font-weight:800;letter-spacing:-0.02em;margin-bottom:4px;">New Cashbook</h2>
-      <p style="color:var(--text-secondary);font-size:13px;margin:0;">Create a new financial ledger to record cash transactions</p>
-    </div>
-
-    <div class="card" style="padding:24px 20px;">
+    <div class="card" style="padding:32px 26px;">
       <label for="name">Cashbook Name</label>
-      <input id="name" placeholder="e.g. Daily Expenses, Trip to Goa, Business Ledger" />
+      <input id="name" placeholder="e.g. Daily Expenses, Trip Fund, Business Cash" />
 
       <label for="partnerName">Partner / Nominee Name (Optional)</label>
       <input id="partnerName" placeholder="e.g. Simran, Alex" />
@@ -38,7 +58,8 @@
       <p id="err" class="error"></p>
       <button class="btn full" onclick="createCashbook()">+ Create Cashbook</button>
     </div>
-  </div>
+  </main>
+
   <script src="add-cashbook.js"></script>
 </body>
 </html>
