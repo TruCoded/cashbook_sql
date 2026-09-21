@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Cashbook - Financial Analytics</title>
+  <link rel="stylesheet" href="shared.css" />
+  <script src="theme.js"></script>
+  <!-- Vercel Web Analytics & Speed Insights -->
+  <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+  <script defer src="/_vercel/insights/script.js"></script>
+  <script>window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };</script>
+  <script defer src="/_vercel/speed-insights/script.js"></script>
+  <style>
+    .analytics-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .chart-container-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 800px) {
+      .chart-container-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .bar-chart-visual {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      height: 190px;
+      padding: 16px 8px 10px;
+      gap: 12px;
+    }
+    .bar-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      height: 100%;
+      justify-content: flex-end;
+    }
+    .bars-pair {
+      display: flex;
+      align-items: flex-end;
+      gap: 5px;
+      height: 150px;
+      width: 100%;
+      justify-content: center;
+    }
+    .bar-col {
+      width: 14px;
+      border-radius: 6px 6px 0 0;
+      transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .bar-col.income { background: var(--accent-blue); }
+    .bar-col.expense { background: var(--accent-red); }
+    .bar-month-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      background: var(--surface-elevated);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 6px;
+      border: 1px solid var(--surface-border);
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--accent-blue);
+      transition: width 0.8s ease;
+    }
+    .insight-card {
+      padding: 16px;
+      background: var(--surface-elevated);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-md);
+    }
+  </style>
+</head>
+<body>
+  <div class="page wide">
+    <!-- Topbar -->
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <a href="cashbooks.html" class="link-back" style="margin-bottom:0;">← Dashboard</a>
+        <span style="color:var(--text-muted);">/</span>
+        <span style="font-size:13px;font-weight:600;color:var(--text-secondary);">Financial Intelligence</span>
+      </div>
+      <div class="header-actions">
+        <a href="collaborators.html" class="theme-toggle-btn" title="View Collaborators" style="text-decoration:none;font-size:14px;font-weight:700;">👥</a>
+        <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Theme">☀️</button>
+      </div>
+    </div>
+
+    <!-- Header Banner -->
+    <div style="margin-bottom:28px;">
+      <div style="font-size:12px;font-weight:600;text-transform:uppercase;color:var(--accent-purple);letter-spacing:0.06em;margin-bottom:6px;">
+        Financial Intelligence
+      </div>
+      <h1 style="font-size:30px;font-weight:800;letter-spacing:-0.03em;margin-bottom:6px;">Understand your money.</h1>
+      <p style="color:var(--text-secondary);font-size:14px;max-width:580px;margin:0;">
+        See where your money comes from, where it goes and how your financial position is changing over time.
+      </p>
+    </div>
+
+    <!-- 4 Top Stat Cards -->
+    <div class="analytics-grid-4">
+      <div class="card" style="margin-bottom:0;padding:20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;">Total Income</span>
+          <span style="font-size:16px;color:var(--accent-green);">↘</span>
+        </div>
+        <div id="statIncome" style="font-size:26px;font-weight:800;color:var(--text-primary);letter-spacing:-0.02em;">...</div>
+        <div style="font-size:12px;color:var(--accent-green);margin-top:4px;font-weight:600;">+12.8% vs last month</div>
+      </div>
+
+      <div class="card" style="margin-bottom:0;padding:20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;">Total Expenses</span>
+          <span style="font-size:16px;color:var(--accent-red);">↗</span>
+        </div>
+        <div id="statExpenses" style="font-size:26px;font-weight:800;color:var(--text-primary);letter-spacing:-0.02em;">...</div>
+        <div style="font-size:12px;color:var(--accent-red);margin-top:4px;font-weight:600;">+4.2% vs last month</div>
+      </div>
+
+      <div class="card" style="margin-bottom:0;padding:20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;">Net Savings</span>
+          <span style="font-size:16px;color:var(--accent-blue);">📈</span>
+        </div>
+        <div id="statSavings" style="font-size:26px;font-weight:800;color:var(--accent-purple);letter-spacing:-0.02em;">...</div>
+        <div style="font-size:12px;color:var(--accent-green);margin-top:4px;font-weight:600;">+18.5% savings delta</div>
+      </div>
+
+      <div class="card" style="margin-bottom:0;padding:20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;">Savings Rate</span>
+          <span style="font-size:16px;">💳</span>
+        </div>
+        <div id="statRate" style="font-size:26px;font-weight:800;color:var(--text-primary);letter-spacing:-0.02em;">...</div>
+        <div style="font-size:12px;color:var(--accent-green);margin-top:4px;font-weight:600;">+6.1% target reached</div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="chart-container-grid">
+      <!-- Income vs Expenses Bar Chart -->
+      <div class="card" style="margin-bottom:0;padding:22px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <h3 style="font-size:16px;font-weight:700;margin:0;">Income vs expenses</h3>
+          <span style="font-size:16px;">📊</span>
+        </div>
+        <p style="font-size:12px;color:var(--text-secondary);margin:0 0 16px;">Monthly financial activity</p>
+
+        <div class="bar-chart-visual" id="barChartContainer">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <div style="display:flex;align-items:center;gap:18px;margin-top:14px;padding-top:12px;border-top:1px solid var(--surface-border);font-size:12px;font-weight:600;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="width:10px;height:10px;border-radius:2px;background:var(--accent-blue);"></span>
+            <span>Income</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="width:10px;height:10px;border-radius:2px;background:var(--accent-red);"></span>
+            <span>Expenses</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expense Breakdown Categories -->
+      <div class="card" style="margin-bottom:0;padding:22px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <h3 style="font-size:16px;font-weight:700;margin:0;">Expense breakdown</h3>
+          <span style="font-size:16px;">⏱️</span>
+        </div>
+        <p style="font-size:12px;color:var(--text-secondary);margin:0 0 16px;">Where your money goes</p>
+
+        <div id="categoryContainer" style="display:flex;flex-direction:column;gap:14px;">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- CashFlow Insights Section -->
+    <div class="card" style="margin-top:20px;padding:24px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <span style="font-size:20px;">💡</span>
+        <div>
+          <div style="font-size:16px;font-weight:700;color:var(--text-primary);">CashFlow Insights</div>
+          <div style="font-size:12px;color:var(--text-secondary);">Intelligent observations from your financial activity</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;" id="insightsContainer">
+        <!-- Populated dynamically via JS -->
+      </div>
+    </div>
+  </div>
+
+  <script src="analytics.js"></script>
+</body>
+</html>
