@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="shared.css" />
   <link rel="stylesheet" href="login.css" />
   <script src="theme.js"></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <!-- Vercel Web Analytics & Speed Insights -->
   <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
   <script defer src="/_vercel/insights/script.js"></script>
@@ -34,9 +33,7 @@
     .logo-img {
       height: 48px;
       width: auto;
-      filter: var(--logo-filter);
       margin-bottom: 12px;
-      transition: filter 0.3s ease;
     }
   </style>
 </head>
@@ -45,7 +42,7 @@
     <!-- Top Bar with Theme Toggle -->
     <div style="display:flex;justify-content:space-between;align-items:center;max-width:1240px;width:100%;margin:0 auto;">
       <a href="#" class="brand-logo-wrap">
-        <img src="logo.png" class="brand-logo-img" alt="Cashbook" />
+        <img src="logo-dark.png" class="brand-logo-img" alt="Cashbook" />
       </a>
       <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Theme">☀️</button>
     </div>
@@ -58,10 +55,6 @@
       </div>
 
       <div class="card" style="padding:32px 26px;">
-        <!-- Google Sign-In -->
-        <div id="google-btn" style="display:flex;justify-content:center;margin-bottom:8px;"></div>
-        <div class="or-divider">or sign in with email</div>
-
         <label for="email">Email Address</label>
         <input id="email" type="email" placeholder="you@example.com" value="trusha@example.com" />
 

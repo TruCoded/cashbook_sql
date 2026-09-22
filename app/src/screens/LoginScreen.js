@@ -8,51 +8,20 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import { API } from "../api";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import { colors, fonts } from "../theme";
 
 export default function LoginScreen({ navigation }) {
   const { login } = useAuth();
+  const { isDark } = useTheme();
   const [email, setEmail] = useState("trusha@example.com");
   const [password, setPassword] = useState("trusha123");
   const [err, setErr] = useState("");
-  const [googleLoading, setGoogleLoading] = useState(false);
-
-  const handleGoogleSignIn = async () => {
-    setGoogleLoading(true);
-    setErr("");
-    try {
-      const backendRes = await fetch(`${API}/auth/google`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: "trushaa15@gmail.com",
-          name: "Trusha",
-        }),
-      });
-      if (backendRes.ok) {
-        const user = await backendRes.json();
-        await login(user);
-      } else {
-        await login({
-          id: "u1",
-          name: "Trusha",
-          email: "trushaa15@gmail.com",
-        });
-      }
-    } catch (e) {
-      // Fallback
-      await login({
-        id: "u1",
-        name: "Trusha",
-        email: "trushaa15@gmail.com",
-      });
-    } finally {
-      setGoogleLoading(false);
-    }
-  };
+  const [loading, setLoading] = useState(false);
 
 
   const onLogin = async () => {
@@ -87,45 +56,13 @@ export default function LoginScreen({ navigation }) {
       style={styles.page}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <Text style={styles.script}>My</Text>
-      <Text style={styles.h1}>CASHBOOK</Text>
+      <Image
+        source={isDark ? require("../../assets/logo-dark.png") : require("../../assets/logo.png")}
+        style={{ width: 140, height: 42, resizeMode: "contain", alignSelf: "center", marginBottom: 12 }}
+      />
       <Text style={styles.subtitle}>Track cash in, cash out and balance, together</Text>
 
       <View style={styles.card}>
-        {/* Google OAuth Sign-in Button (Web style) */}
-        <TouchableOpacity
-          style={styles.googleBtn}
-          onPress={handleGoogleSignIn}
-          disabled={googleLoading}
-        >
-          {googleLoading ? (
-            <ActivityIndicator size="small" color={colors.navy} />
-          ) : (
-            <>
-              <View style={styles.googleLeft}>
-                <View style={styles.avatarPlaceholder}>
-                  <Text style={styles.avatarText}>T</Text>
-                </View>
-                <View>
-                  <Text style={styles.googleUserTitle}>Sign in as Trusha</Text>
-                  <Text style={styles.googleUserEmail}>trushaa15@gmail.com</Text>
-                </View>
-              </View>
-              <View style={styles.googleLogoContainer}>
-                {/* Google "G" Badge */}
-                <Text style={styles.googleLogoText}>G</Text>
-              </View>
-            </>
-          )}
-        </TouchableOpacity>
-
-        {/* OR Divider */}
-        <View style={styles.dividerRow}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>OR SIGN IN WITH EMAIL</Text>
-          <View style={styles.dividerLine} />
-        </View>
-
         <Text style={styles.label}>Email</Text>
         <TextInput
           style={styles.input}
@@ -201,78 +138,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 16,
     elevation: 4,
-  },
-  googleBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    backgroundColor: "#fafafa",
-    marginBottom: 16,
-  },
-  googleLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  avatarPlaceholder: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#5c6fae",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarText: {
-    color: colors.white,
-    fontFamily: fonts.bold,
-    fontSize: 14,
-  },
-  googleUserTitle: {
-    fontFamily: fonts.medium,
-    fontSize: 12,
-    color: colors.text,
-  },
-  googleUserEmail: {
-    fontFamily: fonts.regular,
-    fontSize: 11,
-    color: "#6b7280",
-  },
-  googleLogoContainer: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  googleLogoText: {
-    fontFamily: fonts.bold,
-    fontSize: 14,
-    color: "#4285F4",
-  },
-  dividerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 14,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "#e5e7eb",
-  },
-  dividerText: {
-    paddingHorizontal: 10,
-    fontFamily: fonts.medium,
-    fontSize: 11,
-    color: "#8590aa",
-    letterSpacing: 0.6,
   },
   label: {
     fontSize: 13,

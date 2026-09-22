@@ -5,7 +5,6 @@ require("dotenv").config({ path: path.join(__dirname, ".env") });
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
-const nodemailer = require("nodemailer");
 const mongoose = require("mongoose");
 const { connectDB, User, Cashbook, Collaborator, Otp } = require("./db");
 
@@ -29,64 +28,10 @@ const writeLocalDB = (db) =>
 const balanceOf = (cb) =>
   (cb.transactions || []).reduce((sum, t) => sum + (t.type === "in" ? Number(t.amount) : -Number(t.amount)), 0);
 
-// Gmail transporter (for OTP emails)
-const mailer =
-  process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD
-    ? nodemailer.createTransport({
-        service: "gmail",
-        auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
-      })
-    : null;
-console.log(mailer ? `Gmail Mailer: ACTIVE (${process.env.GMAIL_USER})` : "Gmail Mailer: INACTIVE (OTPs will be logged in console)");
-
 // Health check endpoint
 app.get("/api/health", (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? "mongodb" : "fallback_json";
   res.json({ status: "ok", database: dbStatus });
-});
-
-// ---- GOOGLE OAUTH LOGIN / SIGNUP ----
-app.post("/api/auth/google", async (req, res) => {
-  try {
-    const { email, name, picture, googleId } = req.body;
-    if (!email) return res.status(400).json({ error: "Email is required" });
-
-    if (mongoose.connection.readyState === 1) {
-      let user = await User.findOne({ email: email.toLowerCase() });
-      if (!user) {
-        user = await User.create({
-          id: "u" + Date.now(),
-          name: name || email.split("@")[0] || "Google User",
-          email: email.toLowerCase(),
-          picture: picture || null,
-          googleId: googleId || null,
-        });
-      } else if (picture && !user.picture) {
-        user.picture = picture;
-        await user.save();
-      }
-      return res.json({ id: user.id, name: user.name, email: user.email, picture: user.picture });
-    }
-
-    // Fallback
-    const db = readLocalDB();
-    let user = db.users.find((u) => u.email.toLowerCase() === email.toLowerCase());
-    if (!user) {
-      user = {
-        id: "u" + Date.now(),
-        name: name || email.split("@")[0] || "Google User",
-        email: email,
-        picture: picture || null,
-        googleId: googleId || null,
-      };
-      db.users.push(user);
-      writeLocalDB(db);
-    }
-    res.json({ id: user.id, name: user.name, email: user.email, picture: user.picture });
-  } catch (err) {
-    console.error("Google Auth error:", err);
-    res.status(500).json({ error: "Authentication failed" });
-  }
 });
 
 // ---- SIGNUP ----
@@ -328,21 +273,7 @@ app.post("/api/otp/request", async (req, res) => {
       writeLocalDB(db);
     }
 
-    if (mailer) {
-      try {
-        await mailer.sendMail({
-          from: process.env.GMAIL_USER,
-          to: email,
-          subject: "Your Cashbook collaborator OTP",
-          text: `Your OTP is ${code}. It is required to add you as a collaborator on a cashbook.`,
-        });
-        return res.json({ sent: true });
-      } catch (err) {
-        console.error("Gmail send failed, falling back to console:", err.message);
-      }
-    }
-
-    console.log(`[OTP] Generated OTP for ${email}: ${code}`);
+    console.log(`[OTP Engine] Generated 6-digit OTP for ${email}: ${code}`);
     res.json({ sent: true, demoCode: code });
   } catch (err) {
     console.error("OTP request error:", err);

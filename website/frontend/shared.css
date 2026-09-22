@@ -42,7 +42,7 @@
   --btn-primary-shadow: 0 8px 24px -4px rgba(37, 99, 235, 0.4);
 
   --shadow-card: 0 16px 36px -8px rgba(0, 0, 0, 0.6);
-  --logo-filter: brightness(0) invert(1);
+  --logo-filter: none;
   --radius-lg: 20px;
   --radius-md: 14px;
   --radius-sm: 10px;

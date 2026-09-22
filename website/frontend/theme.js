@@ -9,6 +9,7 @@
     document.documentElement.setAttribute("data-theme", next);
     localStorage.setItem("cashbook_theme", next);
     updateThemeIcons(next);
+    updateLogos(next);
   };
 
   function updateThemeIcons(theme) {
@@ -19,8 +20,19 @@
     });
   }
 
+  function updateLogos(theme) {
+    const logos = document.querySelectorAll(".brand-logo-img, .logo-img");
+    const targetSrc = theme === "dark" ? "logo-dark.png" : "logo.png";
+    logos.forEach((img) => {
+      if (!img.src.endsWith(targetSrc)) {
+        img.src = targetSrc;
+      }
+    });
+  }
+
   window.addEventListener("DOMContentLoaded", () => {
     const current = document.documentElement.getAttribute("data-theme") || "dark";
     updateThemeIcons(current);
+    updateLogos(current);
   });
 })();

@@ -10,8 +10,6 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "google-auth-library": "^9.14.1",
-    "mongoose": "^9.10.3",
-    "nodemailer": "^10.0.13"
+    "mongoose": "^9.10.3"
   }
 }
