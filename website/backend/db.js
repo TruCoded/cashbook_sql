@@ -1,10 +1,12 @@
 const path = require("path");
 const dns = require("dns");
-try {
-  // Use public DNS (Google / Cloudflare) to ensure MongoDB Atlas SRV records resolve reliably on Windows
-  dns.setServers(["8.8.8.8", "1.1.1.1"]);
-} catch (e) {
-  // Ignore if custom dns servers cannot be set
+if (process.platform === "win32") {
+  try {
+    // Use public DNS to ensure MongoDB Atlas SRV records resolve reliably on Windows
+    dns.setServers(["8.8.8.8", "1.1.1.1"]);
+  } catch (e) {
+    // Ignore if custom dns servers cannot be set
+  }
 }
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 const mongoose = require("mongoose");

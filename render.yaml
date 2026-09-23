@@ -3,8 +3,9 @@ services:
     name: cashbook-sql
     env: node
     plan: free
-    buildCommand: cd website/backend && npm install
-    startCommand: cd website/backend && node server.js
+    rootDir: website/backend
+    buildCommand: npm install
+    startCommand: node server.js
     healthCheckPath: /api/health
     envVars:
       - key: MONGODB_URI
