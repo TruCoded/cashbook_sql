@@ -5,6 +5,7 @@ require("dotenv").config({ path: path.join(__dirname, ".env") });
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
+const nodemailer = require("nodemailer");
 const mongoose = require("mongoose");
 const { connectDB, User, Cashbook, Collaborator, Otp } = require("./db");
 
@@ -12,6 +13,20 @@ const DB_PATH = path.join(__dirname, "data", "db.json");
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Nodemailer Gmail SMTP Transporter (Supports up to 500 emails/day)
+const getMailer = () => {
+  if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+    return nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD,
+      },
+    });
+  }
+  return null;
+};
 
 // Initialize MongoDB Connection
 let isMongoConnected = false;
@@ -273,8 +288,37 @@ app.post("/api/otp/request", async (req, res) => {
       writeLocalDB(db);
     }
 
-    console.log(`[OTP Engine] Generated 6-digit OTP for ${email}: ${code}`);
-    res.json({ sent: true, demoCode: code });
+    // Check if Gmail SMTP is configured
+    const mailer = getMailer();
+    let emailSent = false;
+
+    if (mailer) {
+      try {
+        await mailer.sendMail({
+          from: `"My Cashbook" <${process.env.GMAIL_USER}>`,
+          to: email,
+          subject: `Your Cashbook Verification Code: ${code}`,
+          html: `
+            <div style="font-family:'Segoe UI',Helvetica,Arial,sans-serif;max-width:520px;margin:20px auto;padding:32px;background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;">
+              <h2 style="margin:0 0 16px;color:#1e3a8a;font-size:22px;letter-spacing:-0.02em;">Cashbook Verification</h2>
+              <p style="color:#475569;font-size:15px;line-height:1.5;">You requested a verification code to authenticate a collaborator action on Cashbook.</p>
+              <div style="margin:24px 0;padding:16px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;text-align:center;">
+                <span style="font-size:32px;font-weight:800;letter-spacing:8px;color:#2563eb;font-family:monospace;">${code}</span>
+              </div>
+              <p style="color:#64748b;font-size:13px;margin:0;">This code will expire in 10 minutes. If you did not request this OTP, you can safely ignore this email.</p>
+            </div>
+          `,
+          text: `Your Cashbook OTP is ${code}. It is required to add you as a collaborator. Valid for 10 minutes.`,
+        });
+        emailSent = true;
+        console.log(`[SMTP Mailer] Real OTP email delivered to ${email} via Gmail SMTP.`);
+      } catch (mailErr) {
+        console.error(`[SMTP Mailer] Delivery failed (${mailErr.message}), falling back to console/demoCode.`);
+      }
+    }
+
+    console.log(`[OTP Engine] 6-digit OTP for ${email}: ${code} (SMTP Delivered: ${emailSent})`);
+    res.json({ sent: true, emailSent, demoCode: emailSent ? undefined : code });
   } catch (err) {
     console.error("OTP request error:", err);
     res.status(500).json({ error: "Failed to request OTP" });
