@@ -201,11 +201,12 @@ async function requestOtp() {
     alert("Please enter a collaborator email");
     return;
   }
+  const cashbookName = document.getElementById("title") ? document.getElementById("title").textContent : "";
   try {
     const res = await fetch(`${API}/otp/request`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, cashbookName }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -243,12 +244,19 @@ async function verifyAndAdd() {
       body: JSON.stringify({ collaboratorEmail, otp, accountNumber, ifsc }),
     });
 
+    const data = await res.json().catch(() => ({}));
+
     if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      document.getElementById("collabErr").textContent = errData.error || "Incorrect or expired OTP";
+      document.getElementById("collabErr").textContent = data.error || "Incorrect or expired OTP";
       return;
     }
-    alert("Collaborator added successfully!");
+
+    if (data.sheetSent) {
+      alert(`✓ Collaborator added successfully!\n\n📊 The complete cashbook sheet and statement have been sent to ${collaboratorEmail}`);
+    } else {
+      alert(`✓ Collaborator added successfully!`);
+    }
+
     document.getElementById("otpStep").style.display = "none";
     document.getElementById("collabEmail").value = "";
     document.getElementById("otpCode").value = "";
