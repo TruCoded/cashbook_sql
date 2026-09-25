@@ -49,18 +49,44 @@
         <p style="color:var(--text-secondary);font-size:14px;margin:0;">Start tracking cash flows with zero setup</p>
       </div>
 
-      <div class="card" style="padding:32px 26px;">
-        <label for="name">Full Name</label>
-        <input id="name" placeholder="Alex Morgan" />
+      <div class="card" style="padding:28px 24px;">
+        <!-- Auth Tabs: Password vs Gmail OTP -->
+        <div style="display:flex;gap:8px;background:var(--surface-elevated);padding:4px;border-radius:12px;margin-bottom:20px;border:1px solid var(--surface-border);">
+          <button id="tab-password" type="button" class="btn" onclick="switchAuthTab('password')" style="flex:1;padding:8px 12px;font-size:13px;border-radius:8px;">Password</button>
+          <button id="tab-otp" type="button" class="btn secondary" onclick="switchAuthTab('otp')" style="flex:1;padding:8px 12px;font-size:13px;border-radius:8px;">✉️ Gmail OTP</button>
+        </div>
 
-        <label for="email">Email Address</label>
-        <input id="email" type="email" placeholder="alex@example.com" />
+        <!-- Tab 1: Password Registration -->
+        <div id="password-signup-section">
+          <label for="name">Full Name</label>
+          <input id="name" placeholder="Alex Morgan" />
 
-        <label for="password">Password</label>
-        <input id="password" type="password" placeholder="Create a secure password" />
+          <label for="email">Email Address</label>
+          <input id="email" type="email" placeholder="alex@example.com" />
 
-        <p id="err" class="error"></p>
-        <button class="btn full" onclick="signup()">Create Account →</button>
+          <label for="password">Password</label>
+          <input id="password" type="password" placeholder="Create a secure password" />
+
+          <p id="err" class="error"></p>
+          <button class="btn full" onclick="signup()">Create Account →</button>
+        </div>
+
+        <!-- Tab 2: Gmail SMTP OTP Registration -->
+        <div id="otp-signup-section" style="display:none;">
+          <label for="otpName">Your Name</label>
+          <input id="otpName" placeholder="Your Name" value="Trusha" />
+
+          <label for="otpEmail">Your Gmail Address</label>
+          <input id="otpEmail" type="email" placeholder="yourname@gmail.com" value="trushaa15@gmail.com" />
+          <button id="btnSendOtp" class="btn full secondary" onclick="requestSignupOtp()">Send 6-Digit Code to Gmail</button>
+
+          <div id="otpInputStep" style="display:none;margin-top:16px;padding-top:14px;border-top:1px solid var(--surface-border);">
+            <label for="signupOtpCode">Enter 6-Digit OTP</label>
+            <input id="signupOtpCode" placeholder="123456" maxlength="6" style="letter-spacing:4px;font-weight:700;text-align:center;font-size:18px;" />
+            <button class="btn full" onclick="verifyOtpAndSignup()">Verify &amp; Create Account →</button>
+          </div>
+          <p id="otpErr" class="error"></p>
+        </div>
       </div>
 
       <p class="auth-switch">Already registered? <a href="login.html">Sign In</a></p>

@@ -51,10 +51,32 @@ const writeLocalDB = (db) =>
 const balanceOf = (cb) =>
   (cb.transactions || []).reduce((sum, t) => sum + (t.type === "in" ? Number(t.amount) : -Number(t.amount)), 0);
 
-// Health check endpoint
-app.get("/api/health", (req, res) => {
+// Health check endpoint with database & SMTP diagnostics
+app.get("/api/health", async (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? "mongodb" : "fallback_json";
-  res.json({ status: "ok", database: dbStatus });
+  const mailer = getMailer();
+  let smtp = "not_configured";
+  let smtpError = null;
+
+  if (mailer) {
+    try {
+      await mailer.verify();
+      smtp = "connected";
+    } catch (e) {
+      smtp = "failed";
+      smtpError = e.message;
+    }
+  }
+
+  res.json({
+    status: "ok",
+    database: dbStatus,
+    smtp,
+    smtpUser: process.env.GMAIL_USER ? process.env.GMAIL_USER.trim() : null,
+    hasPassword: Boolean(process.env.GMAIL_APP_PASSWORD),
+    passwordLength: process.env.GMAIL_APP_PASSWORD ? process.env.GMAIL_APP_PASSWORD.replace(/\s+/g, "").length : 0,
+    smtpError,
+  });
 });
 
 // ---- GOOGLE OAUTH LOGIN / SIGNUP ----
