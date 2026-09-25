@@ -49,6 +49,131 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", database: dbStatus });
 });
 
+// ---- GOOGLE OAUTH LOGIN / SIGNUP ----
+app.post("/api/auth/google", async (req, res) => {
+  try {
+    let { email, name, picture, googleId, credential } = req.body;
+
+    // Decode Google Identity JWT token if provided
+    if (credential && !email) {
+      try {
+        const parts = credential.split(".");
+        if (parts.length === 3) {
+          const payload = JSON.parse(Buffer.from(parts[1], "base64").toString("utf8"));
+          email = payload.email;
+          name = payload.name || payload.given_name || (payload.email ? payload.email.split("@")[0] : "Google User");
+          picture = payload.picture || null;
+          googleId = payload.sub || null;
+        }
+      } catch (decodeErr) {
+        console.warn("Could not decode Google credential JWT:", decodeErr.message);
+      }
+    }
+
+    if (!email) return res.status(400).json({ error: "Email is required for Google sign-in" });
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+    if (mongoose.connection.readyState === 1) {
+      let user = await User.findOne({ email: normalizedEmail });
+      if (!user) {
+        user = await User.create({
+          id: "u" + Date.now(),
+          name: name || normalizedEmail.split("@")[0],
+          email: normalizedEmail,
+          picture: picture || null,
+          googleId: googleId || null,
+        });
+      } else if (picture && !user.picture) {
+        user.picture = picture;
+        await user.save();
+      }
+      return res.json({ id: user.id, name: user.name, email: user.email, picture: user.picture });
+    }
+
+    // Fallback
+    const db = readLocalDB();
+    let user = (db.users || []).find((u) => (u.email || "").toLowerCase() === normalizedEmail);
+    if (!user) {
+      user = {
+        id: "u" + Date.now(),
+        name: name || normalizedEmail.split("@")[0],
+        email: normalizedEmail,
+        picture: picture || null,
+        googleId: googleId || null,
+      };
+      db.users.push(user);
+      writeLocalDB(db);
+    } else if (picture && !user.picture) {
+      user.picture = picture;
+      writeLocalDB(db);
+    }
+    return res.json({ id: user.id, name: user.name, email: user.email, picture: user.picture });
+  } catch (err) {
+    console.error("Google Auth error:", err);
+    res.status(500).json({ error: "Google authentication failed" });
+  }
+});
+
+// ---- GMAIL SMTP OTP LOGIN / SIGNUP (Passwordless, zero 3rd party OAuth) ----
+app.post("/api/auth/otp-login", async (req, res) => {
+  try {
+    const { email, otp, name } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({ error: "Gmail and 6-digit OTP code are required" });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const code = String(otp).trim();
+
+    if (mongoose.connection.readyState === 1) {
+      const match = await Otp.findOne({ email: normalizedEmail, code });
+      if (!match) {
+        return res.status(400).json({ error: "Incorrect or expired OTP" });
+      }
+
+      let user = await User.findOne({ email: normalizedEmail });
+      if (!user) {
+        user = await User.create({
+          id: "u" + Date.now(),
+          name: name || normalizedEmail.split("@")[0],
+          email: normalizedEmail,
+        });
+      }
+
+      await Otp.deleteMany({ email: normalizedEmail });
+      return res.json({ id: user.id, name: user.name, email: user.email, picture: user.picture });
+    }
+
+    // Fallback
+    const db = readLocalDB();
+    const match = (db.otps || []).find(
+      (o) => (o.email || "").toLowerCase() === normalizedEmail && o.code === code
+    );
+    if (!match) {
+      return res.status(400).json({ error: "Incorrect or expired OTP" });
+    }
+
+    let user = (db.users || []).find((u) => (u.email || "").toLowerCase() === normalizedEmail);
+    if (!user) {
+      user = {
+        id: "u" + Date.now(),
+        name: name || normalizedEmail.split("@")[0],
+        email: normalizedEmail,
+      };
+      db.users.push(user);
+    }
+
+    db.otps = (db.otps || []).filter((o) => (o.email || "").toLowerCase() !== normalizedEmail);
+    writeLocalDB(db);
+
+    return res.json({ id: user.id, name: user.name, email: user.email, picture: user.picture });
+  } catch (err) {
+    console.error("OTP login error:", err);
+    res.status(500).json({ error: "Failed to sign in with Gmail OTP" });
+  }
+});
+
 // ---- SIGNUP ----
 app.post("/api/signup", async (req, res) => {
   try {
@@ -269,10 +394,161 @@ app.post("/api/cashbooks/:id/transactions", async (req, res) => {
   }
 });
 
+// Helper: Email complete Cashbook statement sheet (HTML + CSV attachment) to collaborator
+async function sendCashbookSheetToCollaborator(cashbook, collaboratorEmail, ownerName) {
+  if (!cashbook) return false;
+  const mailer = getMailer();
+
+  const txns = cashbook.transactions || [];
+  const cashIn = txns.filter((t) => t.type === "in").reduce((s, t) => s + Number(t.amount || 0), 0);
+  const cashOut = txns.filter((t) => t.type === "out").reduce((s, t) => s + Number(t.amount || 0), 0);
+  const balance = cashIn - cashOut;
+
+  // Build spreadsheet CSV
+  const csvHeaders = "Date,Type,Amount (INR),Remarks/Notes\n";
+  const csvRows = txns.map((t) => {
+    const d = t.date ? new Date(t.date).toISOString().replace("T", " ").substring(0, 19) : "N/A";
+    const type = t.type === "in" ? "CASH IN" : "CASH OUT";
+    const amt = Number(t.amount || 0).toFixed(2);
+    const note = `"${(t.note || "").replace(/"/g, '""')}"`;
+    return `"${d}","${type}",${amt},${note}`;
+  }).join("\n");
+  const csvContent = csvHeaders + csvRows;
+  const safeName = (cashbook.name || "cashbook").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const csvFilename = `${safeName}_statement_sheet.csv`;
+
+  // Build HTML table for transactions preview
+  const recentTxns = [...txns].reverse().slice(0, 35);
+  const tableRowsHtml = recentTxns.length === 0
+    ? `<tr><td colspan="4" style="text-align:center;padding:18px;color:#94a3b8;font-style:italic;">No transactions recorded yet in this cashbook.</td></tr>`
+    : recentTxns.map((t) => {
+        const d = t.date ? new Date(t.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "-";
+        const isIn = t.type === "in";
+        const sign = isIn ? "+" : "-";
+        return `
+          <tr style="border-bottom:1px solid #f1f5f9;">
+            <td style="padding:10px 12px;font-size:13px;color:#475569;white-space:nowrap;">${d}</td>
+            <td style="padding:10px 12px;">
+              <span style="display:inline-block;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:0.5px;background:${isIn ? '#dcfce7' : '#fee2e2'};color:${isIn ? '#166534' : '#991b1b'};text-transform:uppercase;">
+                ${isIn ? 'Cash In' : 'Cash Out'}
+              </span>
+            </td>
+            <td style="padding:10px 12px;font-size:13px;color:#334155;max-width:200px;overflow:hidden;text-overflow:ellipsis;">${(t.note || '-').replace(/</g, '&lt;')}</td>
+            <td style="padding:10px 12px;font-size:14px;font-weight:700;text-align:right;color:${isIn ? '#16a34a' : '#dc2626'};white-space:nowrap;">
+              ${sign}₹${Number(t.amount || 0).toLocaleString("en-IN")}
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+  const emailHtml = `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"></head>
+    <body style="margin:0;padding:24px;background-color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+      <div style="max-width:620px;margin:0 auto;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.06);border:1px solid #e2e8f0;">
+        <!-- Header -->
+        <div style="background:linear-gradient(135deg,#0a192f 0%,#1e3a8a 100%);padding:32px 28px;color:#ffffff;">
+          <div style="display:inline-block;padding:5px 12px;border-radius:20px;background:rgba(255,255,255,0.18);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">
+            Cashbook Collaborator Access
+          </div>
+          <h1 style="margin:0 0 8px;font-size:24px;font-weight:800;letter-spacing:-0.02em;">📊 ${cashbook.name}</h1>
+          <p style="margin:0;font-size:14px;opacity:0.92;line-height:1.5;">
+            You have been added as a collaborator by <strong>${ownerName || 'the book owner'}</strong>. Below is your cashbook financial sheet and summary.
+          </p>
+        </div>
+
+        <!-- Metrics Cards -->
+        <div style="padding:24px 28px 12px;">
+          <div style="display:table;width:100%;margin-bottom:20px;">
+            <div style="display:table-cell;width:32%;padding:14px 12px;background:#f0fdf4;border-radius:12px;border:1px solid #bbf7d0;text-align:center;">
+              <div style="font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:0.5px;">Total Cash In</div>
+              <div style="font-size:18px;font-weight:800;color:#15803d;margin-top:4px;">₹${cashIn.toLocaleString("en-IN")}</div>
+            </div>
+            <div style="display:table-cell;width:2%;"></div>
+            <div style="display:table-cell;width:32%;padding:14px 12px;background:#fef2f2;border-radius:12px;border:1px solid #fecaca;text-align:center;">
+              <div style="font-size:11px;font-weight:700;color:#991b1b;text-transform:uppercase;letter-spacing:0.5px;">Total Cash Out</div>
+              <div style="font-size:18px;font-weight:800;color:#b91c1c;margin-top:4px;">₹${cashOut.toLocaleString("en-IN")}</div>
+            </div>
+            <div style="display:table-cell;width:2%;"></div>
+            <div style="display:table-cell;width:32%;padding:14px 12px;background:#eff6ff;border-radius:12px;border:1px solid #bfdbfe;text-align:center;">
+              <div style="font-size:11px;font-weight:700;color:#1e40af;text-transform:uppercase;letter-spacing:0.5px;">Net Balance</div>
+              <div style="font-size:18px;font-weight:800;color:#2563eb;margin-top:4px;">₹${balance.toLocaleString("en-IN")}</div>
+            </div>
+          </div>
+
+          <!-- Statement Sheet Table -->
+          <div style="margin-top:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+              <h3 style="margin:0;font-size:16px;font-weight:800;color:#0f172a;">Ledger Transactions Sheet</h3>
+              <span style="font-size:12px;color:#64748b;font-weight:600;">${txns.length} total entries</span>
+            </div>
+
+            <table style="width:100%;border-collapse:collapse;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
+              <thead>
+                <tr style="background:#f8fafc;border-bottom:1px solid #e2e8f0;text-align:left;">
+                  <th style="padding:10px 12px;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;">Date</th>
+                  <th style="padding:10px 12px;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;">Type</th>
+                  <th style="padding:10px 12px;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;">Remarks</th>
+                  <th style="padding:10px 12px;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;text-align:right;">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${tableRowsHtml}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Attachment Notice -->
+          <div style="margin-top:20px;padding:14px 18px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;">
+            <div style="font-size:13px;color:#334155;line-height:1.5;">
+              📎 <strong>Excel / Google Sheets File Attached:</strong> We have attached <code>${csvFilename}</code> with the full dataset for instant download and offline spreadsheet access.
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="padding:20px 28px;background:#f8fafc;border-top:1px solid #e2e8f0;text-align:center;font-size:12px;color:#94a3b8;">
+          You received this email because you were verified and added to "${cashbook.name}".<br>
+          © ${new Date().getFullYear()} My Cashbook.
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  if (mailer) {
+    try {
+      await mailer.sendMail({
+        from: `"My Cashbook" <${process.env.GMAIL_USER}>`,
+        to: collaboratorEmail,
+        subject: `📊 Cashbook Sheet: ${cashbook.name} - Financial Statement & Access`,
+        html: emailHtml,
+        text: `You have been added as a collaborator to "${cashbook.name}". Total Cash In: ₹${cashIn}, Total Cash Out: ₹${cashOut}, Balance: ₹${balance}. View the attached CSV sheet for full details.`,
+        attachments: [
+          {
+            filename: csvFilename,
+            content: csvContent,
+            contentType: "text/csv",
+          },
+        ],
+      });
+      console.log(`[SMTP Mailer] Cashbook statement sheet delivered to ${collaboratorEmail} with attached ${csvFilename}`);
+      return true;
+    } catch (mailErr) {
+      console.error(`[SMTP Mailer] Failed to email statement sheet to ${collaboratorEmail}:`, mailErr.message);
+      return false;
+    }
+  } else {
+    console.warn(`[SMTP Mailer] GMAIL_USER/GMAIL_APP_PASSWORD not set. Sheet generated for ${collaboratorEmail}, but email could not be sent.`);
+    return false;
+  }
+}
+
 // ---- OTP: REQUEST (emails via Gmail if configured, or logs in console) ----
 app.post("/api/otp/request", async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, cashbookName } = req.body;
     if (!email) return res.status(400).json({ error: "Email is required" });
 
     const code = String(Math.floor(100000 + Math.random() * 900000));
@@ -291,24 +567,25 @@ app.post("/api/otp/request", async (req, res) => {
     // Check if Gmail SMTP is configured
     const mailer = getMailer();
     let emailSent = false;
+    const bookTitle = cashbookName ? ` for "${cashbookName}"` : "";
 
     if (mailer) {
       try {
         await mailer.sendMail({
           from: `"My Cashbook" <${process.env.GMAIL_USER}>`,
           to: email,
-          subject: `Your Cashbook Verification Code: ${code}`,
+          subject: `Your Cashbook Verification Code${bookTitle}: ${code}`,
           html: `
             <div style="font-family:'Segoe UI',Helvetica,Arial,sans-serif;max-width:520px;margin:20px auto;padding:32px;background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;">
-              <h2 style="margin:0 0 16px;color:#1e3a8a;font-size:22px;letter-spacing:-0.02em;">Cashbook Verification</h2>
-              <p style="color:#475569;font-size:15px;line-height:1.5;">You requested a verification code to authenticate a collaborator action on Cashbook.</p>
+              <h2 style="margin:0 0 16px;color:#1e3a8a;font-size:22px;letter-spacing:-0.02em;">Cashbook Collaborator Verification</h2>
+              <p style="color:#475569;font-size:15px;line-height:1.5;">You have been invited to collaborate on <strong>${cashbookName || 'a Cashbook'}</strong>. Use the verification code below to confirm and receive the cashbook sheet:</p>
               <div style="margin:24px 0;padding:16px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;text-align:center;">
                 <span style="font-size:32px;font-weight:800;letter-spacing:8px;color:#2563eb;font-family:monospace;">${code}</span>
               </div>
-              <p style="color:#64748b;font-size:13px;margin:0;">This code will expire in 10 minutes. If you did not request this OTP, you can safely ignore this email.</p>
+              <p style="color:#64748b;font-size:13px;margin:0;">This code will expire in 10 minutes. Upon verification, the complete cashbook statement sheet will be delivered to your inbox.</p>
             </div>
           `,
-          text: `Your Cashbook OTP is ${code}. It is required to add you as a collaborator. Valid for 10 minutes.`,
+          text: `Your Cashbook OTP${bookTitle} is ${code}. It is required to add you as a collaborator. Valid for 10 minutes.`,
         });
         emailSent = true;
         console.log(`[SMTP Mailer] Real OTP email delivered to ${email} via Gmail SMTP.`);
@@ -325,7 +602,7 @@ app.post("/api/otp/request", async (req, res) => {
   }
 });
 
-// ---- OTP: VERIFY + ADD COLLABORATOR ----
+// ---- OTP: VERIFY + ADD COLLABORATOR + SEND STATEMENT SHEET ----
 app.post("/api/cashbooks/:id/collaborators", async (req, res) => {
   try {
     const { collaboratorEmail, otp, accountNumber, ifsc } = req.body;
@@ -334,6 +611,8 @@ app.post("/api/cashbooks/:id/collaborators", async (req, res) => {
     }
 
     const normalizedEmail = collaboratorEmail.toLowerCase().trim();
+    let targetCashbook = null;
+    let ownerName = "";
 
     if (mongoose.connection.readyState === 1) {
       const match = await Otp.findOne({ email: normalizedEmail, code: String(otp).trim() });
@@ -347,25 +626,43 @@ app.post("/api/cashbooks/:id/collaborators", async (req, res) => {
       });
 
       await Otp.deleteMany({ email: normalizedEmail });
-      return res.json({ added: true });
+
+      targetCashbook = await Cashbook.findOne({ id: req.params.id }).lean();
+      if (targetCashbook && targetCashbook.ownerId) {
+        const owner = await User.findOne({ id: targetCashbook.ownerId }).lean();
+        if (owner) ownerName = owner.name || owner.email;
+      }
+    } else {
+      // Fallback
+      const db = readLocalDB();
+      const match = (db.otps || []).find(
+        (o) => (o.email || "").toLowerCase() === normalizedEmail && o.code === String(otp).trim()
+      );
+      if (!match) return res.status(400).json({ error: "Incorrect or expired OTP" });
+
+      db.collaborators.push({
+        cashbookId: req.params.id,
+        collaboratorEmail: normalizedEmail,
+        accountNumber: accountNumber || "",
+        ifsc: ifsc || "",
+      });
+      db.otps = db.otps.filter((o) => (o.email || "").toLowerCase() !== normalizedEmail);
+      writeLocalDB(db);
+
+      targetCashbook = (db.cashbooks || []).find((c) => c.id === req.params.id);
+      if (targetCashbook && targetCashbook.ownerId) {
+        const owner = (db.users || []).find((u) => u.id === targetCashbook.ownerId);
+        if (owner) ownerName = owner.name || owner.email;
+      }
     }
 
-    // Fallback
-    const db = readLocalDB();
-    const match = (db.otps || []).find(
-      (o) => (o.email || "").toLowerCase() === normalizedEmail && o.code === String(otp).trim()
-    );
-    if (!match) return res.status(400).json({ error: "Incorrect or expired OTP" });
+    // Automatically email cashbook sheet (HTML statement + CSV attachment) to the collaborator
+    let sheetSent = false;
+    if (targetCashbook) {
+      sheetSent = await sendCashbookSheetToCollaborator(targetCashbook, normalizedEmail, ownerName);
+    }
 
-    db.collaborators.push({
-      cashbookId: req.params.id,
-      collaboratorEmail: normalizedEmail,
-      accountNumber: accountNumber || "",
-      ifsc: ifsc || "",
-    });
-    db.otps = db.otps.filter((o) => (o.email || "").toLowerCase() !== normalizedEmail);
-    writeLocalDB(db);
-    res.json({ added: true });
+    return res.json({ added: true, sheetSent });
   } catch (err) {
     console.error("Add collaborator error:", err);
     res.status(500).json({ error: "Failed to add collaborator" });
