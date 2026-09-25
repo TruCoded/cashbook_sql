@@ -526,34 +526,33 @@ async function sendCashbookSheetToCollaborator(cashbook, collaboratorEmail, owne
   `;
 
   if (mailer) {
-    try {
-      await mailer.sendMail({
-        from: `"My Cashbook" <${process.env.GMAIL_USER}>`,
-        to: collaboratorEmail,
-        subject: `📊 Cashbook Sheet: ${cashbook.name} - Financial Statement & Access`,
-        html: emailHtml,
-        text: `You have been added as a collaborator to "${cashbook.name}". Total Cash In: ₹${cashIn}, Total Cash Out: ₹${cashOut}, Balance: ₹${balance}. View the attached CSV sheet for full details.`,
-        attachments: [
-          {
-            filename: csvFilename,
-            content: csvContent,
-            contentType: "text/csv",
-          },
-        ],
-      });
+    // Non-blocking background email delivery
+    mailer.sendMail({
+      from: `"My Cashbook" <${process.env.GMAIL_USER}>`,
+      to: collaboratorEmail,
+      subject: `📊 Cashbook Sheet: ${cashbook.name} - Financial Statement & Access`,
+      html: emailHtml,
+      text: `You have been added as a collaborator to "${cashbook.name}". Total Cash In: ₹${cashIn}, Total Cash Out: ₹${cashOut}, Balance: ₹${balance}. View the attached CSV sheet for full details.`,
+      attachments: [
+        {
+          filename: csvFilename,
+          content: csvContent,
+          contentType: "text/csv",
+        },
+      ],
+    }).then(() => {
       console.log(`[SMTP Mailer] Cashbook statement sheet delivered to ${collaboratorEmail} with attached ${csvFilename}`);
-      return true;
-    } catch (mailErr) {
+    }).catch((mailErr) => {
       console.error(`[SMTP Mailer] Failed to email statement sheet to ${collaboratorEmail}:`, mailErr.message);
-      return false;
-    }
+    });
+    return true;
   } else {
     console.warn(`[SMTP Mailer] GMAIL_USER/GMAIL_APP_PASSWORD not set. Sheet generated for ${collaboratorEmail}, but email could not be sent.`);
     return false;
   }
 }
 
-// ---- OTP: REQUEST (emails via Gmail if configured, or logs in console) ----
+// ---- OTP: REQUEST (Instant response + background email dispatch) ----
 app.post("/api/otp/request", async (req, res) => {
   try {
     const { email, cashbookName } = req.body;
@@ -572,38 +571,38 @@ app.post("/api/otp/request", async (req, res) => {
       writeLocalDB(db);
     }
 
-    // Check if Gmail SMTP is configured
     const mailer = getMailer();
-    let emailSent = false;
+    const isSmtpConfigured = Boolean(mailer);
     const bookTitle = cashbookName ? ` for "${cashbookName}"` : "";
 
+    // Send email asynchronously in background so response is instantaneous (<50ms)
     if (mailer) {
-      try {
-        await mailer.sendMail({
-          from: `"My Cashbook" <${process.env.GMAIL_USER}>`,
-          to: email,
-          subject: `Your Cashbook Verification Code${bookTitle}: ${code}`,
-          html: `
-            <div style="font-family:'Segoe UI',Helvetica,Arial,sans-serif;max-width:520px;margin:20px auto;padding:32px;background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;">
-              <h2 style="margin:0 0 16px;color:#1e3a8a;font-size:22px;letter-spacing:-0.02em;">Cashbook Collaborator Verification</h2>
-              <p style="color:#475569;font-size:15px;line-height:1.5;">You have been invited to collaborate on <strong>${cashbookName || 'a Cashbook'}</strong>. Use the verification code below to confirm and receive the cashbook sheet:</p>
-              <div style="margin:24px 0;padding:16px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;text-align:center;">
-                <span style="font-size:32px;font-weight:800;letter-spacing:8px;color:#2563eb;font-family:monospace;">${code}</span>
-              </div>
-              <p style="color:#64748b;font-size:13px;margin:0;">This code will expire in 10 minutes. Upon verification, the complete cashbook statement sheet will be delivered to your inbox.</p>
+      mailer.sendMail({
+        from: `"My Cashbook" <${process.env.GMAIL_USER}>`,
+        to: email,
+        subject: `Your Cashbook Verification Code${bookTitle}: ${code}`,
+        html: `
+          <div style="font-family:'Segoe UI',Helvetica,Arial,sans-serif;max-width:520px;margin:20px auto;padding:32px;background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;">
+            <h2 style="margin:0 0 16px;color:#1e3a8a;font-size:22px;letter-spacing:-0.02em;">Cashbook Verification Code</h2>
+            <p style="color:#475569;font-size:15px;line-height:1.5;">You requested a verification code to authenticate on <strong>${cashbookName || 'Cashbook'}</strong>. Use the code below to complete sign-in:</p>
+            <div style="margin:24px 0;padding:16px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;text-align:center;">
+              <span style="font-size:32px;font-weight:800;letter-spacing:8px;color:#2563eb;font-family:monospace;">${code}</span>
             </div>
-          `,
-          text: `Your Cashbook OTP${bookTitle} is ${code}. It is required to add you as a collaborator. Valid for 10 minutes.`,
-        });
-        emailSent = true;
+            <p style="color:#64748b;font-size:13px;margin:0;">This code will expire in 10 minutes. If you did not request this OTP, you can safely ignore this email.</p>
+          </div>
+        `,
+        text: `Your Cashbook OTP${bookTitle} is ${code}. Valid for 10 minutes.`,
+      }).then(() => {
         console.log(`[SMTP Mailer] Real OTP email delivered to ${email} via Gmail SMTP.`);
-      } catch (mailErr) {
-        console.error(`[SMTP Mailer] Delivery failed (${mailErr.message}), falling back to console/demoCode.`);
-      }
+      }).catch((mailErr) => {
+        console.error(`[SMTP Mailer] Delivery failed (${mailErr.message}).`);
+      });
     }
 
-    console.log(`[OTP Engine] 6-digit OTP for ${email}: ${code} (SMTP Delivered: ${emailSent})`);
-    res.json({ sent: true, emailSent, demoCode: emailSent ? undefined : code });
+    console.log(`[OTP Engine] 6-digit OTP for ${email}: ${code} (SMTP Configured: ${isSmtpConfigured})`);
+    
+    // Immediate response to browser!
+    res.json({ sent: true, emailSent: isSmtpConfigured, demoCode: isSmtpConfigured ? undefined : code });
   } catch (err) {
     console.error("OTP request error:", err);
     res.status(500).json({ error: "Failed to request OTP" });

@@ -33,19 +33,14 @@ async function requestLoginOtp() {
 
   const origText = btn.textContent;
   btn.disabled = true;
-  btn.textContent = "Connecting to mail server...";
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 12000);
+  btn.textContent = "Sending code to Gmail...";
 
   try {
     const res = await fetch(`${API}/otp/request`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
-      signal: controller.signal,
     });
-    clearTimeout(timeoutId);
 
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -61,13 +56,8 @@ async function requestLoginOtp() {
       alert(`A 6-digit OTP code has been sent to ${email}. Please check your inbox.`);
     }
   } catch (err) {
-    clearTimeout(timeoutId);
     console.error("OTP send error:", err);
-    if (err.name === "AbortError") {
-      if (errEl) errEl.textContent = "Connection timed out. Server might be waking up; please try once more.";
-    } else {
-      if (errEl) errEl.textContent = "Could not send OTP. Please check backend connection.";
-    }
+    if (errEl) errEl.textContent = "Connection error. Please try again.";
   } finally {
     btn.disabled = false;
     btn.textContent = origText;
