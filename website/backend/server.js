@@ -14,15 +14,23 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Nodemailer Gmail SMTP Transporter (Supports up to 500 emails/day)
+// Nodemailer Gmail SMTP Transporter (Direct SSL on port 465 for rapid cloud delivery)
 const getMailer = () => {
-  if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+  const user = (process.env.GMAIL_USER || "").trim();
+  const pass = (process.env.GMAIL_APP_PASSWORD || "").replace(/\s+/g, "");
+
+  if (user && pass) {
     return nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true, // SSL port 465 connects in <2 seconds
       auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_APP_PASSWORD,
+        user,
+        pass,
       },
+      connectionTimeout: 7000, // Max 7 seconds before fallback
+      greetingTimeout: 7000,
+      socketTimeout: 9000,
     });
   }
   return null;

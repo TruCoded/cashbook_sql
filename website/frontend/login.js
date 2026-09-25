@@ -33,14 +33,19 @@ async function requestLoginOtp() {
 
   const origText = btn.textContent;
   btn.disabled = true;
-  btn.textContent = "Sending code to Gmail...";
+  btn.textContent = "Connecting to mail server...";
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 12000);
 
   try {
     const res = await fetch(`${API}/otp/request`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
 
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -50,14 +55,19 @@ async function requestLoginOtp() {
 
     document.getElementById("otpInputStep").style.display = "block";
     if (data.demoCode) {
-      alert(`[Demo OTP Code]: ${data.demoCode}\n(If SMTP is configured on Render, this is delivered directly to your inbox)`);
+      alert(`[OTP Code]: ${data.demoCode}\n\nEnter this code below to sign in!`);
       document.getElementById("loginOtpCode").value = data.demoCode;
     } else {
       alert(`A 6-digit OTP code has been sent to ${email}. Please check your inbox.`);
     }
   } catch (err) {
+    clearTimeout(timeoutId);
     console.error("OTP send error:", err);
-    if (errEl) errEl.textContent = "Could not send OTP. Please check backend connection.";
+    if (err.name === "AbortError") {
+      if (errEl) errEl.textContent = "Connection timed out. Server might be waking up; please try once more.";
+    } else {
+      if (errEl) errEl.textContent = "Could not send OTP. Please check backend connection.";
+    }
   } finally {
     btn.disabled = false;
     btn.textContent = origText;
