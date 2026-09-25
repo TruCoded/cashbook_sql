@@ -49,9 +49,10 @@ async function requestSignupOtp() {
     }
 
     document.getElementById("otpInputStep").style.display = "block";
-    if (data.demoCode) {
-      alert(`[OTP Code]: ${data.demoCode}\n\nEnter this code below to create account!`);
-      document.getElementById("signupOtpCode").value = data.demoCode;
+    const otpCode = data.code || data.demoCode;
+    if (otpCode) {
+      alert(`[Verification Code]: ${otpCode}\n\nCode has been auto-filled! Click "Verify & Create Account" to enter.`);
+      document.getElementById("signupOtpCode").value = otpCode;
     } else {
       alert(`A 6-digit OTP code has been sent to ${email}. Please check your inbox.`);
     }

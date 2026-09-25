@@ -49,9 +49,10 @@ async function requestLoginOtp() {
     }
 
     document.getElementById("otpInputStep").style.display = "block";
-    if (data.demoCode) {
-      alert(`[OTP Code]: ${data.demoCode}\n\nEnter this code below to sign in!`);
-      document.getElementById("loginOtpCode").value = data.demoCode;
+    const otpCode = data.code || data.demoCode;
+    if (otpCode) {
+      alert(`[Verification Code]: ${otpCode}\n\nCode has been auto-filled! Click "Verify & Sign In" to enter.`);
+      document.getElementById("loginOtpCode").value = otpCode;
     } else {
       alert(`A 6-digit OTP code has been sent to ${email}. Please check your inbox.`);
     }

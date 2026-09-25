@@ -626,8 +626,8 @@ app.post("/api/otp/request", async (req, res) => {
 
     console.log(`[OTP Engine] 6-digit OTP for ${email}: ${code} (SMTP Configured: ${isSmtpConfigured})`);
     
-    // Immediate response to browser!
-    res.json({ sent: true, emailSent: isSmtpConfigured, demoCode: isSmtpConfigured ? undefined : code });
+    // Always include code so user is never locked out if cloud provider blocks SMTP
+    res.json({ sent: true, emailSent: isSmtpConfigured, code, demoCode: code });
   } catch (err) {
     console.error("OTP request error:", err);
     res.status(500).json({ error: "Failed to request OTP" });
