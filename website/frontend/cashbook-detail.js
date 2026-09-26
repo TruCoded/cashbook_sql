@@ -1,117 +1,18 @@
 const isLocal = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && window.location.port !== "5000";
 const API = isLocal ? "http://localhost:5000/api" : "/api";
+// URL param first, localStorage as a fallback
 const id = new URLSearchParams(location.search).get("id") || localStorage.getItem("lastCashbookId");
 
+// Render cache instantly
 const detailCacheKey = `cb_detail_${id}`;
-
-function formatCurrency(amount) {
-  const num = Number(amount) || 0;
-  return "₹" + num.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-function setEntryType(type) {
-  document.getElementById("txnType").value = type;
-  const btnIn = document.getElementById("btnTypeIn");
-  const btnOut = document.getElementById("btnTypeOut");
-
-  if (type === "in") {
-    btnIn.className = "btn";
-    btnIn.style.background = "var(--accent-green-bg)";
-    btnIn.style.color = "var(--accent-green)";
-    btnIn.style.border = "1px solid rgba(16,185,129,0.3)";
-    btnIn.style.boxShadow = "none";
-
-    btnOut.className = "btn secondary";
-    btnOut.style.background = "";
-    btnOut.style.color = "";
-    btnOut.style.border = "";
-    btnOut.style.boxShadow = "";
-  } else {
-    btnOut.className = "btn";
-    btnOut.style.background = "var(--accent-red-bg)";
-    btnOut.style.color = "var(--accent-red)";
-    btnOut.style.border = "1px solid rgba(244,63,94,0.3)";
-    btnOut.style.boxShadow = "none";
-
-    btnIn.className = "btn secondary";
-    btnIn.style.background = "";
-    btnIn.style.color = "";
-    btnIn.style.border = "";
-    btnIn.style.boxShadow = "";
-  }
-}
-
-function renderTransactions(txns) {
-  const listEl = document.getElementById("txnList");
-  const countBadge = document.getElementById("txnCountBadge");
-  if (!listEl) return;
-
-  if (!txns || txns.length === 0) {
-    listEl.innerHTML = `<div class="card" style="text-align:center;color:var(--text-secondary);padding:24px;">No transactions recorded yet.</div>`;
-    if (countBadge) countBadge.textContent = "0 entries";
-    return;
-  }
-
-  if (countBadge) countBadge.textContent = `${txns.length} entries`;
-
-  // Sort newest first
-  const reversed = [...txns].reverse();
-
-  listEl.innerHTML = reversed
-    .map((t) => {
-      const isIn = t.type === "in";
-      const icon = isIn ? "↓" : "↑";
-      const sign = isIn ? "+" : "-";
-      const title = t.note ? escapeHtml(t.note) : (isIn ? "Cash Inflow" : "Cash Outflow");
-      const dateStr = t.date ? new Date(t.date).toLocaleDateString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "Recent";
-
-      return `
-      <div class="txn-row">
-        <div class="txn-left">
-          <div class="txn-icon ${isIn ? 'in' : 'out'}">${icon}</div>
-          <div class="txn-info">
-            <div class="txn-title">${title}</div>
-            <div class="txn-time">${dateStr}</div>
-          </div>
-        </div>
-        <div class="txn-amount ${isIn ? 'in' : 'out'}">
-          ${sign} ${formatCurrency(t.amount)}
-        </div>
-      </div>`;
-    })
-    .join("");
-}
-
-function escapeHtml(str) {
-  if (!str) return "";
-  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
-
-function updateUI(cb) {
-  if (!cb) return;
-  document.getElementById("title").textContent = cb.name || "Cashbook";
-  document.getElementById("cashIn").textContent = formatCurrency(cb.cashIn);
-  document.getElementById("cashOut").textContent = formatCurrency(cb.cashOut);
-  document.getElementById("balance").textContent = formatCurrency(cb.balance);
-
-  const partnerBadge = document.getElementById("partnerBadge");
-  if (partnerBadge) {
-    if (cb.partnerName || cb.partnerEmail) {
-      partnerBadge.textContent = `Partner / Nominee: ${cb.partnerName || cb.partnerEmail}`;
-      partnerBadge.style.display = "block";
-    } else {
-      partnerBadge.style.display = "none";
-    }
-  }
-
-  renderTransactions(cb.transactions);
-}
-
-// Instant load from cache
 const cachedDetail = sessionStorage.getItem(detailCacheKey);
 if (cachedDetail) {
   try {
-    updateUI(JSON.parse(cachedDetail));
+    const cb = JSON.parse(cachedDetail);
+    document.getElementById("title").textContent = cb.name || "Cashbook";
+    document.getElementById("cashIn").textContent = "₹" + (cb.cashIn || 0);
+    document.getElementById("cashOut").textContent = "₹" + (cb.cashOut || 0);
+    document.getElementById("balance").textContent = "₹" + (cb.balance || 0);
   } catch (e) {}
 }
 
@@ -124,30 +25,38 @@ async function loadDetail() {
     const res = await fetch(`${API}/cashbooks/${encodeURIComponent(id)}`);
     if (!res.ok) {
       document.getElementById("title").textContent = "Cashbook not found";
+      document.getElementById("cashIn").textContent = "-";
+      document.getElementById("cashOut").textContent = "-";
+      document.getElementById("balance").textContent = "-";
       return;
     }
     const cb = await res.json();
     sessionStorage.setItem(detailCacheKey, JSON.stringify(cb));
-    updateUI(cb);
+    document.getElementById("title").textContent = cb.name;
+    document.getElementById("cashIn").textContent = "₹" + (cb.cashIn || 0);
+    document.getElementById("cashOut").textContent = "₹" + (cb.cashOut || 0);
+    document.getElementById("balance").textContent = "₹" + (cb.balance || 0);
   } catch (err) {
     console.error("Failed to load cashbook detail:", err);
+    if (!cachedDetail) {
+      document.getElementById("title").textContent = "Error loading cashbook (connecting...)";
+    }
   }
 }
 
+// Instant optimistic update
 async function addTransaction() {
   const type = document.getElementById("txnType").value;
-  const amountEl = document.getElementById("txnAmount");
-  const noteEl = document.getElementById("txnNote");
-  const amount = amountEl.value.trim();
-  const note = noteEl.value.trim();
-
-  if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-    alert("Please enter a valid positive amount");
+  const amount = document.getElementById("txnAmount").value;
+  const note = document.getElementById("txnNote").value;
+  if (!amount || isNaN(Number(amount))) {
+    alert("Please enter a valid amount");
     return;
   }
 
-  amountEl.value = "";
-  noteEl.value = "";
+  // Clear inputs immediately
+  document.getElementById("txnAmount").value = "";
+  document.getElementById("txnNote").value = "";
 
   try {
     const res = await fetch(`${API}/cashbooks/${encodeURIComponent(id)}/transactions`, {
@@ -155,25 +64,18 @@ async function addTransaction() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ type, amount, note }),
     });
-
     if (!res.ok) {
-      alert("Could not record entry. Please check your connection.");
+      alert("Could not add entry. Please check connection and try again.");
       loadDetail();
       return;
     }
-
     const data = await res.json();
-    if (data.success) {
-      document.getElementById("cashIn").textContent = formatCurrency(data.cashIn);
-      document.getElementById("cashOut").textContent = formatCurrency(data.cashOut);
-      document.getElementById("balance").textContent = formatCurrency(data.balance);
-      if (data.transactions) {
-        renderTransactions(data.transactions);
-      } else {
-        loadDetail();
-      }
-
-      // Update cache
+    if (data.success && data.balance !== undefined) {
+      // Instant DOM update with exact server calculation (0ms second fetch!)
+      document.getElementById("cashIn").textContent = "₹" + data.cashIn;
+      document.getElementById("cashOut").textContent = "₹" + data.cashOut;
+      document.getElementById("balance").textContent = "₹" + data.balance;
+      
       const cached = sessionStorage.getItem(detailCacheKey);
       if (cached) {
         try {
@@ -181,7 +83,6 @@ async function addTransaction() {
           cb.cashIn = data.cashIn;
           cb.cashOut = data.cashOut;
           cb.balance = data.balance;
-          if (data.transactions) cb.transactions = data.transactions;
           sessionStorage.setItem(detailCacheKey, JSON.stringify(cb));
         } catch (e) {}
       }
@@ -190,82 +91,109 @@ async function addTransaction() {
     }
   } catch (err) {
     console.error("Add transaction error:", err);
-    alert("Connection error. Please try again.");
+    alert("Connection error. If Render is waking up, please retry in a few seconds.");
   }
 }
 
-// Collaborator OTP Flow
+
+// --- collaborator flow: request OTP -> verify OTP + bank details -> add ---
+let invitation = null;
+let sendingOtp = false;
+let verifyingOtp = false;
+function invitationHeaders() {
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  return { "Content-Type": "application/json", Authorization: `Bearer ${user.token || ""}` };
+}
+document.getElementById("collabEmail").addEventListener("input", () => {
+  invitation = null;
+  document.getElementById("otpCode").value = "";
+  document.getElementById("otpStep").style.display = "none";
+  document.getElementById("otpStatus").textContent = "";
+  document.getElementById("collabErr").textContent = "";
+});
 async function requestOtp() {
-  const email = document.getElementById("collabEmail").value.trim();
-  if (!email) {
-    alert("Please enter a collaborator email");
+  if (sendingOtp || verifyingOtp) return;
+  const input = document.getElementById("collabEmail");
+  const email = input.value.trim().toLowerCase();
+  const error = document.getElementById("collabErr");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !input.checkValidity()) {
+    error.textContent = "Enter a valid email address, for example name@gmail.com.";
     return;
   }
-  const cashbookName = document.getElementById("title") ? document.getElementById("title").textContent : "";
+  sendingOtp = true;
+  invitation = null;
+  input.disabled = true;
+  document.getElementById("sendOtpBtn").disabled = true;
+  document.getElementById("otpStep").style.display = "none";
+  document.getElementById("otpCode").value = "";
+  document.getElementById("otpStatus").textContent = "Sending invitation...";
+  error.textContent = "";
   try {
     const res = await fetch(`${API}/otp/request`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, cashbookName }),
+      headers: invitationHeaders(),
+      body: JSON.stringify({ email, cashbookId: id }),
     });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      alert(data.error || "Failed to send OTP.");
-      return;
-    }
+    const data = await res.json();
+    if (!res.ok || data.sent !== true || !data.invitationId) throw new Error(data.error || "The invitation could not be sent.");
+    invitation = { email: data.email, id: data.invitationId };
+    input.value = data.email;
+    document.getElementById("otpStatus").textContent = `Invitation sent to ${data.email}. The code expires in 10 minutes. Check Spam if needed. You can resend after 60 seconds.`;
+    document.getElementById("sendOtpBtn").textContent = "Resend invitation & OTP";
     document.getElementById("otpStep").style.display = "block";
-    if (data.demoCode) {
-      alert(`[Demo OTP]: Your code is ${data.demoCode}`);
-      document.getElementById("otpCode").value = data.demoCode;
-    } else {
-      alert(`OTP has been sent to ${email}`);
-    }
+    document.getElementById("otpCode").focus();
   } catch (err) {
-    console.error("OTP request error:", err);
-    alert("Connection error sending OTP.");
+    document.getElementById("otpStatus").textContent = "";
+    error.textContent = err.message || "Connection error sending invitation. Please retry.";
+  } finally {
+    sendingOtp = false;
+    input.disabled = false;
+    document.getElementById("sendOtpBtn").disabled = false;
   }
 }
 
 async function verifyAndAdd() {
-  const collaboratorEmail = document.getElementById("collabEmail").value.trim();
+  if (verifyingOtp || sendingOtp) return;
+  const collaboratorEmail = document.getElementById("collabEmail").value.trim().toLowerCase();
   const otp = document.getElementById("otpCode").value.trim();
   const accountNumber = document.getElementById("accNum").value.trim();
   const ifsc = document.getElementById("ifsc").value.trim();
 
-  if (!collaboratorEmail || !otp) {
-    document.getElementById("collabErr").textContent = "Email and OTP are required";
+  if (!invitation || invitation.email !== collaboratorEmail || !/^\d{6}$/.test(otp)) {
+    document.getElementById("collabErr").textContent = "Request an invitation for this email and enter its six-digit code.";
     return;
   }
-
+  verifyingOtp = true;
+  document.getElementById("verifyOtpBtn").disabled = true;
+  document.getElementById("collabEmail").disabled = true;
   try {
     const res = await fetch(`${API}/cashbooks/${encodeURIComponent(id)}/collaborators`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ collaboratorEmail, otp, accountNumber, ifsc }),
+      headers: invitationHeaders(),
+      body: JSON.stringify({ collaboratorEmail, otp, invitationId: invitation.id, accountNumber, ifsc }),
     });
 
-    const data = await res.json().catch(() => ({}));
-
     if (!res.ok) {
-      document.getElementById("collabErr").textContent = data.error || "Incorrect or expired OTP";
+      const errData = await res.json().catch(() => ({}));
+      document.getElementById("collabErr").textContent = errData.error || "Incorrect OTP, try again";
       return;
     }
-
-    if (data.sheetSent) {
-      alert(`✓ Collaborator added successfully!\n\n📊 The complete cashbook sheet and statement have been sent to ${collaboratorEmail}`);
-    } else {
-      alert(`✓ Collaborator added successfully!`);
-    }
-
+    alert("Collaborator added successfully");
+    invitation = null;
+    document.getElementById("otpStatus").textContent = "Collaborator verified and added.";
+    document.getElementById("collabErr").textContent = "";
     document.getElementById("otpStep").style.display = "none";
     document.getElementById("collabEmail").value = "";
     document.getElementById("otpCode").value = "";
     document.getElementById("accNum").value = "";
     document.getElementById("ifsc").value = "";
-    document.getElementById("collabErr").textContent = "";
   } catch (err) {
     console.error("Verify collaborator error:", err);
     document.getElementById("collabErr").textContent = "Connection error. Please try again.";
+  } finally {
+    verifyingOtp = false;
+    document.getElementById("verifyOtpBtn").disabled = false;
+    document.getElementById("collabEmail").disabled = false;
   }
 }
 

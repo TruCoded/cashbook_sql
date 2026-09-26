@@ -1,16 +1,25 @@
 {
   "name": "my-cashbook-backend",
   "version": "1.0.0",
-  "description": "My Cashbook backend - Express + MongoDB (Mongoose), with automatic migration and local fallback",
+  "description": "Cashbook backend - MongoDB and direct Gmail SMTP invitations",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test *.test.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "mongoose": "^9.10.3",
+    "google-auth-library": "^11.1.0",
+    "mongodb": "^6.21.0",
     "nodemailer": "^10.0.13"
+  },
+  "devDependencies": {
+    "@babel/parser": "^7.29.9",
+    "mongodb-memory-server": "^10.4.3"
+  },
+  "engines": {
+    "node": ">=20.19.0"
   }
 }

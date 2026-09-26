@@ -2,11 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Cashbook - Create Book</title>
+  <title>My Cashbook - New Cashbook</title>
   <link rel="stylesheet" href="shared.css" />
   <link rel="stylesheet" href="add-cashbook.css" />
-  <script src="theme.js"></script>
   <!-- Vercel Web Analytics & Speed Insights -->
   <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
   <script defer src="/_vercel/insights/script.js"></script>
@@ -14,52 +12,24 @@
   <script defer src="/_vercel/speed-insights/script.js"></script>
 </head>
 <body>
-  <!-- Full-Screen Top Navbar -->
-  <header class="app-navbar">
-    <div class="navbar-inner">
-      <a href="cashbooks.html" class="brand-logo-wrap">
-        <img src="logo-dark.png" class="brand-logo-img" alt="Cashbook" />
-        <span class="brand-tag">CREATE</span>
-      </a>
+  <div class="page">
+    <a href="cashbooks.html" class="link-back">← Back</a>
+    <h2 style="margin-top:16px;">Create a New <span class="script">Cashbook</span></h2>
 
-      <nav class="nav-links">
-        <a href="cashbooks.html" class="nav-link">Dashboard</a>
-        <a href="analytics.html" class="nav-link">Analytics</a>
-        <a href="collaborators.html" class="nav-link">Collaborators</a>
-        <a href="superadmin.html" class="nav-link">Admin Ledger</a>
-      </nav>
+    <div class="card">
+      <label for="name">Name of Cashbook</label>
+      <input id="name" placeholder="e.g. List 3" />
 
-      <div class="nav-right-actions">
-        <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Theme">☀️</button>
-        <a href="cashbooks.html" class="btn secondary" style="padding:8px 16px;font-size:12px;">← Back</a>
-      </div>
-    </div>
-  </header>
+      <label for="partnerName">Partner / Nominee Name</label>
+      <input id="partnerName" placeholder="Who will be the nominee for this cash?" />
 
-  <main class="page-container" style="max-width:680px;">
-    <div style="margin-bottom:28px;">
-      <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--blue-light);letter-spacing:0.06em;margin-bottom:6px;">
-        NEW FINANCIAL LEDGER
-      </div>
-      <h1 style="font-size:32px;font-weight:800;letter-spacing:-0.03em;margin-bottom:6px;color:var(--text-primary);">Create Cashbook</h1>
-      <p style="color:var(--text-secondary);font-size:14px;margin:0;">Initialize a dedicated cash ledger for personal or shared expenses</p>
-    </div>
-
-    <div class="card" style="padding:32px 26px;">
-      <label for="name">Cashbook Name</label>
-      <input id="name" placeholder="e.g. Daily Expenses, Trip Fund, Business Cash" />
-
-      <label for="partnerName">Partner / Nominee Name (Optional)</label>
-      <input id="partnerName" placeholder="e.g. Simran, Alex" />
-
-      <label for="partnerEmail">Partner / Nominee Email (Optional)</label>
+      <label for="partnerEmail">Partner / Nominee Email</label>
       <input id="partnerEmail" type="email" placeholder="partner@example.com" />
 
       <p id="err" class="error"></p>
-      <button class="btn full" onclick="createCashbook()">+ Create Cashbook</button>
+      <button class="btn full" onclick="createCashbook()">Create New Sheet</button>
     </div>
-  </main>
-
+  </div>
   <script src="add-cashbook.js"></script>
 </body>
 </html>

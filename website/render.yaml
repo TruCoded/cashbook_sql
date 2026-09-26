@@ -2,16 +2,20 @@ services:
   - type: web
     name: cashbook-sql
     env: node
-    plan: free
-    rootDir: backend
+    # SMTP requires a plan with outbound port 465 access. This plan is paid.
+    plan: starter
     buildCommand: npm install
-    startCommand: node server.js
+    startCommand: node backend/server.js
     healthCheckPath: /api/health
     envVars:
       - key: MONGODB_URI
         sync: false
-      - key: MONGODB_DB_NAME
+      - key: MONGODB_DB
         value: cashbook
+      - key: OTP_SECRET
+        generateValue: true
+      - key: GOOGLE_CLIENT_ID
+        sync: false
       - key: GMAIL_USER
         sync: false
       - key: GMAIL_APP_PASSWORD

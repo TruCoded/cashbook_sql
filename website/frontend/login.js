@@ -1,99 +1,44 @@
 const isLocal = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && window.location.port !== "5000";
 const API = isLocal ? "http://localhost:5000/api" : "/api";
 
-function switchAuthTab(tab) {
-  const pwdSection = document.getElementById("password-login-section");
-  const otpSection = document.getElementById("otp-login-section");
-  const tabPwd = document.getElementById("tab-password");
-  const tabOtp = document.getElementById("tab-otp");
 
-  if (tab === "otp") {
-    pwdSection.style.display = "none";
-    otpSection.style.display = "block";
-    tabPwd.className = "btn secondary";
-    tabOtp.className = "btn";
-  } else {
-    pwdSection.style.display = "block";
-    otpSection.style.display = "none";
-    tabPwd.className = "btn";
-    tabOtp.className = "btn secondary";
-  }
-}
+// ---- Google Sign-In (Gmail OAuth) ----
+// Paste your OAuth Client ID here (Google Cloud Console -> Credentials).
+// Must match the GOOGLE_CLIENT_ID set in backend/.env. See README ->
+// "Enabling Gmail Sign-In (Google OAuth)" for the full setup steps.
+// Left as-is (not a real ID), the Google button below simply stays hidden
+// and the normal email/password form keeps working exactly as before.
+const GOOGLE_CLIENT_ID = "917414479648-g29oij57cklpb9kpuka4pgla7rnu6kkn.apps.googleusercontent.com";
 
-async function requestLoginOtp() {
-  const email = document.getElementById("otpEmail").value.trim();
-  const errEl = document.getElementById("otpErr");
-  const btn = document.getElementById("btnSendOtp");
+window.onload = () => {
+  if (!window.google || GOOGLE_CLIENT_ID.startsWith("YOUR_")) return; // not configured yet
+  google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: onGoogleSignIn });
+  google.accounts.id.renderButton(document.getElementById("google-btn"), { theme: "outline", size: "large", width: 280 });
+};
 
-  if (!email) {
-    if (errEl) errEl.textContent = "Please enter your Gmail address";
-    return;
-  }
-  if (errEl) errEl.textContent = "";
-
-  const origText = btn.textContent;
-  btn.disabled = true;
-  btn.textContent = "Sending code to Gmail...";
-
+// Google calls this with a signed token proving which Gmail account was picked.
+// We hand that straight to the backend - any real Gmail address works, even one
+// that has never signed up before (the backend creates the account on the spot).
+async function onGoogleSignIn(response) {
+  const errEl = document.getElementById("err");
+  if (errEl) errEl.textContent = "Verifying with Google...";
   try {
-    const res = await fetch(`${API}/otp/request`, {
+    const res = await fetch(`${API}/auth/google`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ credential: response.credential }),
     });
-
-    const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      if (errEl) errEl.textContent = data.error || "Failed to send OTP";
+      const errData = await res.json().catch(() => ({}));
+      document.getElementById("err").textContent = errData.error || "Google sign-in failed";
       return;
     }
-
-    document.getElementById("otpInputStep").style.display = "block";
-    const otpCode = data.code || data.demoCode;
-    if (otpCode) {
-      alert(`[Verification Code]: ${otpCode}\n\nCode has been auto-filled! Click "Verify & Sign In" to enter.`);
-      document.getElementById("loginOtpCode").value = otpCode;
-    } else {
-      alert(`A 6-digit OTP code has been sent to ${email}. Please check your inbox.`);
-    }
-  } catch (err) {
-    console.error("OTP send error:", err);
-    if (errEl) errEl.textContent = "Connection error. Please try again.";
-  } finally {
-    btn.disabled = false;
-    btn.textContent = origText;
-  }
-}
-
-async function verifyOtpAndLogin() {
-  const email = document.getElementById("otpEmail").value.trim();
-  const otp = document.getElementById("loginOtpCode").value.trim();
-  const errEl = document.getElementById("otpErr");
-
-  if (!email || !otp) {
-    if (errEl) errEl.textContent = "Please enter both Gmail and the 6-digit OTP";
-    return;
-  }
-  if (errEl) errEl.textContent = "";
-
-  try {
-    const res = await fetch(`${API}/auth/otp-login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, otp }),
-    });
-
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      if (errEl) errEl.textContent = data.error || "Incorrect or expired OTP";
-      return;
-    }
-
-    localStorage.setItem("user", JSON.stringify(data));
+    const user = await res.json();
+    localStorage.setItem("user", JSON.stringify(user));
     window.location.href = "cashbooks.html";
   } catch (err) {
-    console.error("OTP verify error:", err);
-    if (errEl) errEl.textContent = "Connection error. Please try again.";
+    console.error("Google sign-in error:", err);
+    if (errEl) errEl.textContent = "Could not connect to server. Please wait ~30s if server was sleeping and retry.";
   }
 }
 

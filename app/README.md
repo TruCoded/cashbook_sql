@@ -1,115 +1,26 @@
-# My Cashbook — Expo (React Native) Mobile App
+# Cashbook mobile app
 
-A full-featured mobile companion app for the Cashbook system, built with **React Native** and **Expo SDK 57**. It runs on both Android and iOS from a single codebase and can be built into a standalone `.apk` using Expo EAS.
+This Expo / React Native app shares the MongoDB and Gmail SMTP backend with the website. Complete the backend setup in `../README.md` first.
 
----
+## Run
 
-## ✨ Features & Design
+1. Run `npm install` in `app`.
+2. Copy `.env.example` to `.env` and set `EXPO_PUBLIC_API_URL` to your backend's public HTTPS API URL, ending in `/api`.
+3. For local testing on a phone, use `http://YOUR_COMPUTER_LAN_IP:5000/api` and connect the phone and computer to the same Wi-Fi. `localhost` on the phone refers to the phone.
+4. Run `npx expo start`. Set the same environment variable for production builds and rebuild when changing it.
 
-- **Typography & Aesthetics**: Styled to match the web app with Google Fonts (**Playfair Display** for serif headings/italics and **Poppins** for modern clean UI).
-- **Authentication**:
-  - One-Tap **Google Sign-In** widget (with user avatar and Google badge).
-  - Standard **Email/Password** authentication (e.g. `trusha@example.com` / `trusha123`).
-  - Account registration via **Sign Up**.
-- **Cashbook Management**:
-  - View cashbooks list with live balances.
-  - Cash in, cash out, notes, and transaction calculations.
-  - Create new cashbooks starting from ₹0.
-- **Collaborator Sharing & Real OTP Delivery**:
-  - Add collaborators by email.
-  - Generates a 6-digit OTP delivered directly to collaborator's inbox via **Gmail SMTP** (`nodemailer`).
-  - Verify OTP and link collaborator bank details (Account number & IFSC).
-- **Super Admin View**: Aggregated overview of all cashbooks, balances, and collaborators across all users.
+Never put Gmail passwords, MongoDB credentials, or the OTP secret in an Expo public environment variable.
 
----
+## Sign-in and invitations
 
-## 🚀 Quick Start Guide
+Create an account and sign in with email and password. Passwords require at least eight characters. Existing sessions must sign out and sign in again after the backend update. The old hardcoded demo Google sign-in has been removed.
 
-### 1. Start the Backend Server
+Open a cashbook you own and use **Send invitation & OTP**. The backend sends both the invitation and code to the entered collaborator email through Gmail SMTP. The collaborator supplies the code to the owner for the existing owner-managed verification form. Errors are shown instead of demo codes. Changing the recipient clears the old invitation and code.
 
-Open your first terminal:
+The code expires in ten minutes and can be used once. You can request another after sixty seconds. Only five verification attempts are allowed per code.
 
-```powershell
-cd "C:\Users\DELL\Downloads\cashbook-app\cashbook-app\backend"
-npm start
-```
+The input supports native `one-time-code` autofill hints and manual entry/paste. Actual email-code suggestions depend on the phone, mail app, keyboard, and settings. The app cannot detect whether a specific Gmail account is on the phone or force email OTP suggestions. It never retrieves OTPs through the API.
 
-> **Note on Gmail OTP**: Ensure `backend/.env` is configured with your Gmail App Password:
-> ```env
-> GMAIL_USER=trushaa15@gmail.com
-> GMAIL_APP_PASSWORD=vdzjddemxlswrlvn
-> ```
-> When running, the terminal will confirm:  
-> `Gmail Mailer: ACTIVE (trushaa15@gmail.com)`
+## Deployment
 
----
-
-### 2. Configure Backend API URL
-
-Open [src/api.js](file:///c:/Users/DELL/Downloads/cashbook-app-mobile/mobile/src/api.js) and verify your machine's Wi-Fi IPv4 address:
-
-```javascript
-export const API = "http://10.82.166.208:5000/api";
-```
-
-*(Ensure your phone and computer are connected to the same Wi-Fi network)*.
-
----
-
-### 3. Start the Mobile App (Expo)
-
-Open your second terminal:
-
-```powershell
-cd "C:\Users\DELL\Downloads\cashbook-app-mobile\mobile"
-npx expo start -c
-```
-
-- **Open on Android / iOS**: Open **Expo Go** on your phone and scan the QR code displayed in the terminal.
-- **Fast Reload**: Press `r` in the Expo terminal to reload code changes instantly.
-
----
-
-## 📦 Building a Standalone Android APK (EAS Build)
-
-To produce an installable `.apk` file that runs independently on your phone without Expo Go:
-
-```powershell
-cd "C:\Users\DELL\Downloads\cashbook-app-mobile\mobile"
-
-# 1. Log in with your Expo account
-npx eas login
-# Username: warnallabs
-
-# 2. Link your EAS project (one-time)
-npx eas init
-
-# 3. Build the preview APK on Expo cloud servers
-npx eas build --platform android --profile preview
-```
-
-When the cloud build finishes, EAS will provide a direct download link for the `.apk` to install on your Android device.
-
----
-
-## 📁 Project Structure
-
-```text
-mobile/
-├── App.js                   # Root navigator & Google Fonts loader
-├── app.json                 # Expo configuration & deep linking scheme
-├── package.json             # Dependencies (@expo-google-fonts, expo-font, etc.)
-└── src/
-    ├── api.js               # Backend API endpoint configuration
-    ├── theme.js             # Color palette & font definitions (Playfair & Poppins)
-    ├── context/
-    │   └── AuthContext.js   # User session state & AsyncStorage persistence
-    └── screens/
-        ├── LoginScreen.js          # Google One-Tap & Email login
-        ├── SignupScreen.js         # User registration
-        ├── CashbooksScreen.js      # List of cashbooks & quick balance
-        ├── AddCashbookScreen.js    # Create a new cashbook
-        ├── CashbookDetailScreen.js # Transactions, balances & OTP collaborator invite
-        └── SuperAdminScreen.js     # Super admin merged cashbook sheet
-```
-
+Gmail SMTP needs outbound port 465 access. Render Free blocks SMTP; use an SMTP-capable host or a suitable paid plan. Set backend credentials only on that backend. See `../README.md` for environment variables, MongoDB migration, testing, and hosting details.

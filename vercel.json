@@ -34,14 +34,6 @@
       "destination": "/website/frontend/superadmin.html"
     },
     {
-      "source": "/analytics",
-      "destination": "/website/frontend/analytics.html"
-    },
-    {
-      "source": "/collaborators",
-      "destination": "/website/frontend/collaborators.html"
-    },
-    {
       "source": "/((?!_vercel).*)",
       "destination": "/website/frontend/$1"
     }

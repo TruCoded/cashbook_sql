@@ -12,9 +12,11 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import { API } from "../api";
 import { colors, fonts } from "../theme";
+import { useAuth } from "../context/AuthContext";
 
 
 export default function CashbookDetailScreen({ route, navigation }) {
+  const { user } = useAuth();
   const { id } = route.params;
   const [cb, setCb] = useState(null);
   const [txnType, setTxnType] = useState("in");
@@ -24,11 +26,13 @@ export default function CashbookDetailScreen({ route, navigation }) {
   const [collabEmail, setCollabEmail] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [otpCode, setOtpCode] = useState("");
-  const [demoCodeHint, setDemoCodeHint] = useState("");
+  const [invitation, setInvitation] = useState(null);
   const [accNum, setAccNum] = useState("");
   const [ifsc, setIfsc] = useState("");
   const [collabErr, setCollabErr] = useState("");
   const [otpLoading, setOtpLoading] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const invitationHeaders = { "Content-Type": "application/json", Authorization: `Bearer ${user?.token || ""}` };
 
   const loadDetail = useCallback(async () => {
     try {
@@ -60,48 +64,50 @@ export default function CashbookDetailScreen({ route, navigation }) {
   };
 
   const requestOtp = async () => {
-    if (!collabEmail.trim()) {
-      return Alert.alert("Required", "Please enter collaborator email");
+    if (otpLoading || verifying) return;
+    const email = collabEmail.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return Alert.alert("Valid email required", "Enter a valid collaborator email, for example name@gmail.com.");
     }
     setOtpLoading(true);
     setCollabErr("");
+    setOtpSent(false);
+    setInvitation(null);
+    setOtpCode("");
     try {
       const res = await fetch(`${API}/otp/request`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: collabEmail.trim().toLowerCase() }),
+        headers: invitationHeaders,
+        body: JSON.stringify({ email, cashbookId: id }),
       });
       const data = await res.json();
+      if (!res.ok || data.sent !== true || !data.invitationId) throw new Error(data.error || "The invitation could not be sent.");
+      setCollabEmail(data.email);
+      setInvitation({ id: data.invitationId, email: data.email });
       setOtpSent(true);
-      if (data.demoCode) {
-        setDemoCodeHint(data.demoCode);
-        Alert.alert(
-          "OTP Sent",
-          `OTP Code is: ${data.demoCode}\n\n(Enter this 6-digit code below to confirm collaborator)`
-        );
-      } else {
-        Alert.alert("OTP Sent", `A 6-digit verification OTP has been emailed to ${collabEmail}.`);
-      }
+      Alert.alert("Invitation sent", `An invitation and six-digit code were sent to ${data.email}. The code expires in 10 minutes. Check Spam if needed. You can resend after 60 seconds.`);
     } catch (e) {
-      console.log("OTP request error:", e);
-      Alert.alert("Error", "Could not reach backend server to generate OTP.");
+      setCollabErr(e.message || "Could not reach the server. Please retry.");
     } finally {
       setOtpLoading(false);
     }
   };
 
   const verifyAndAdd = async () => {
+    if (verifying || otpLoading) return;
     setCollabErr("");
-    if (!otpCode.trim()) {
-      return setCollabErr("Please enter the 6-digit OTP code");
+    if (!invitation || invitation.email !== collabEmail.trim().toLowerCase() || !/^\d{6}$/.test(otpCode.trim())) {
+      return setCollabErr("Request an invitation for this email and enter its six-digit code.");
     }
+    setVerifying(true);
     try {
       const res = await fetch(`${API}/cashbooks/${id}/collaborators`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: invitationHeaders,
         body: JSON.stringify({
           collaboratorEmail: collabEmail.trim().toLowerCase(),
           otp: otpCode.trim(),
+          invitationId: invitation.id,
           accountNumber: accNum.trim(),
           ifsc: ifsc.trim(),
         }),
@@ -113,13 +119,15 @@ export default function CashbookDetailScreen({ route, navigation }) {
       Alert.alert("Success", `${collabEmail} has been added as a collaborator!`);
       setOtpSent(false);
       setOtpCode("");
-      setDemoCodeHint("");
+      setInvitation(null);
       setCollabEmail("");
       setAccNum("");
       setIfsc("");
       loadDetail();
     } catch (e) {
       setCollabErr("Network error verifying OTP");
+    } finally {
+      setVerifying(false);
     }
   };
 
@@ -185,37 +193,44 @@ export default function CashbookDetailScreen({ route, navigation }) {
           autoCapitalize="none"
           keyboardType="email-address"
           value={collabEmail}
-          onChangeText={setCollabEmail}
+          editable={!otpLoading && !verifying}
+          autoCorrect={false}
+          onChangeText={(email) => {
+            setCollabEmail(email);
+            setInvitation(null);
+            setOtpSent(false);
+            setOtpCode("");
+            setCollabErr("");
+          }}
         />
         <TouchableOpacity
           style={styles.btn}
           onPress={requestOtp}
-          disabled={otpLoading}
+          disabled={otpLoading || verifying}
         >
           {otpLoading ? (
             <ActivityIndicator size="small" color={colors.white} />
           ) : (
-            <Text style={styles.btnText}>SEND OTP</Text>
+            <Text style={styles.btnText}>{otpSent ? "RESEND INVITATION & OTP" : "SEND INVITATION & OTP"}</Text>
           )}
         </TouchableOpacity>
+        {!!collabErr && <Text accessibilityRole="alert" style={styles.error}>{collabErr}</Text>}
 
         {otpSent && (
           <View style={{ marginTop: 18 }}>
-            {!!demoCodeHint && (
-              <View style={styles.hintBox}>
-                <Text style={styles.hintText}>
-                  Demo Code: <Text style={{ fontFamily: fonts.bold }}>{demoCodeHint}</Text> (Gmail not configured in .env)
-                </Text>
-              </View>
-            )}
+            <Text style={styles.label}>Code sent to {invitation?.email}. Expires in 10 minutes.</Text>
+            <Text style={styles.label}>Enter the code from the collaborator's email. Your device may suggest a code if supported.</Text>
             <Text style={styles.label}>Enter OTP</Text>
             <TextInput
               style={styles.input}
               placeholder="6-digit code"
               placeholderTextColor="#9ca3af"
               keyboardType="number-pad"
+              autoComplete="one-time-code"
+              maxLength={6}
+              editable={!verifying}
               value={otpCode}
-              onChangeText={setOtpCode}
+              onChangeText={(value) => setOtpCode(value.replace(/\D/g, "").slice(0, 6))}
             />
             <Text style={styles.label}>Collaborator Bank Account No.</Text>
             <TextInput
@@ -234,9 +249,8 @@ export default function CashbookDetailScreen({ route, navigation }) {
               placeholder="e.g. SBIN0001234"
               placeholderTextColor="#9ca3af"
             />
-            {!!collabErr && <Text style={styles.error}>{collabErr}</Text>}
-            <TouchableOpacity style={styles.btn} onPress={verifyAndAdd}>
-              <Text style={styles.btnText}>VERIFY & ADD COLLABORATOR</Text>
+            <TouchableOpacity style={styles.btn} onPress={verifyAndAdd} disabled={verifying || otpLoading}>
+              <Text style={styles.btnText}>{verifying ? "VERIFYING..." : "VERIFY & ADD COLLABORATOR"}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -307,5 +321,4 @@ const styles = StyleSheet.create({
     fontFamily: fonts.medium,
   },
 });
-
 

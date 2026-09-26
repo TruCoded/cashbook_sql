@@ -1,37 +1,17 @@
-// theme.js - Design system tokens supporting Dark & Light Modes
-export const darkTheme = {
-  bg: "#090d16",
-  surface: "#111726",
-  surfaceElevated: "#161e31",
-  border: "rgba(255, 255, 255, 0.08)",
-  text: "#f8fafc",
-  textSecondary: "#94a3b8",
-  purple: "#8b5cf6",
-  blue: "#3b82f6",
-  green: "#10b981",
-  red: "#f43f5e",
-  card: "#111726",
-  navy: "#8b5cf6",
-  cream: "#090d16",
-};
-
-export const lightTheme = {
-  bg: "#f5f7fb",
-  surface: "#ffffff",
-  surfaceElevated: "#f8fafc",
-  border: "rgba(0, 0, 0, 0.08)",
-  text: "#0f172a",
-  textSecondary: "#475569",
-  purple: "#7c3aed",
-  blue: "#2563eb",
-  green: "#10b981",
-  red: "#ef4444",
-  card: "#ffffff",
-  navy: "#46568c",
+// theme.js - same palette and typography as the web app's shared.css
+export const colors = {
   cream: "#f7f3ea",
+  lavender: "#dee4f6",
+  cardBlue: "#e7ecf8",
+  navy: "#46568c",
+  navyDark: "#333f6b",
+  midBlue: "#6478ac",
+  text: "#2f3350",
+  white: "#ffffff",
+  error: "#b5423a",
+  divider: "#d9dff2",
+  subtext: "#5c6fae",
 };
-
-export const colors = lightTheme; // backward compatibility
 
 export const fonts = {
   script: "PlayfairDisplay_500Medium_Italic",
@@ -41,3 +21,4 @@ export const fonts = {
   semiBold: "Poppins_600SemiBold",
   bold: "Poppins_700Bold",
 };
+

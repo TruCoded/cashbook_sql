@@ -2,164 +2,33 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Cashbook - Dashboard</title>
+  <title>My Cashbook - List</title>
   <link rel="stylesheet" href="shared.css" />
   <link rel="stylesheet" href="cashbooks.css" />
-  <script src="theme.js"></script>
   <!-- Vercel Web Analytics & Speed Insights -->
   <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
   <script defer src="/_vercel/insights/script.js"></script>
   <script>window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };</script>
   <script defer src="/_vercel/speed-insights/script.js"></script>
-  <style>
-    .hero-dilocash-wrap {
-      display: grid;
-      grid-template-columns: 1.2fr 1fr;
-      gap: 32px;
-      align-items: center;
-      margin-bottom: 40px;
-      padding: 40px 0 20px;
-    }
-    @media (max-width: 900px) {
-      .hero-dilocash-wrap {
-        grid-template-columns: 1fr;
-        padding: 20px 0;
-      }
-    }
-    .hero-headline {
-      font-size: 46px;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      line-height: 1.15;
-      color: var(--text-primary);
-      margin-bottom: 16px;
-    }
-    @media (max-width: 600px) {
-      .hero-headline { font-size: 32px; }
-    }
-    .hero-desc {
-      font-size: 16px;
-      color: var(--text-secondary);
-      line-height: 1.6;
-      max-width: 520px;
-      margin-bottom: 24px;
-    }
-    .hero-cta-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 14px;
-      align-items: center;
-    }
-  </style>
 </head>
 <body>
-  <!-- Full-Screen Top Navbar -->
-  <header class="app-navbar">
-    <div class="navbar-inner">
-      <a href="cashbooks.html" class="brand-logo-wrap">
-        <img src="logo-dark.png" class="brand-logo-img" alt="Cashbook" />
-        <span class="brand-tag">FINTECH</span>
-      </a>
-
-      <nav class="nav-links">
-        <a href="cashbooks.html" class="nav-link active">Dashboard</a>
-        <a href="analytics.html" class="nav-link">Analytics</a>
-        <a href="collaborators.html" class="nav-link">Collaborators</a>
-        <a href="superadmin.html" class="nav-link">Admin Ledger</a>
-      </nav>
-
-      <div class="nav-right-actions">
-        <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Theme">☀️</button>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <div style="width:36px;height:36px;border-radius:50%;background:var(--navy-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;" id="userAvatar">U</div>
-          <a href="login.html" class="btn secondary" onclick="localStorage.clear()" style="padding:8px 16px;font-size:12px;">Logout</a>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- Full-Screen Content Container -->
-  <main class="page-container">
-    <!-- Dilocash-Inspired Full-Screen Hero Section -->
-    <section class="hero-dilocash-wrap">
+  <div class="page">
+    <div class="topbar">
       <div>
-        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--blue-light);margin-bottom:10px;">
-          ✦ SMART CASH INTELLIGENCE
-        </div>
-        <h1 class="hero-headline">
-          Fast And Simple<br />Digital Cashbook<br />Solution.
-        </h1>
-        <p class="hero-desc">
-          Manage your personal transactions, track multi-nominee shared ledgers, and gain instant clarity on all inflows and outflows.
-        </p>
-
-        <div class="hero-cta-row">
-          <a href="add-cashbook.html" class="btn">+ Create New Book</a>
-          <a href="analytics.html" class="btn secondary">View Analytics →</a>
-        </div>
+        <p style="margin:0;color:var(--navy);font-size:13px;">Welcome back,</p>
+        <h2 id="userName" style="margin:2px 0;">...</h2>
       </div>
-
-      <!-- Hero Card Display (Total Balance with Sparkline) -->
-      <div>
-        <div class="hero-balance-card" style="margin-bottom:0;">
-          <div class="hero-balance-label">
-            <span>Portfolio Total Net Balance</span>
-            <span style="font-size:11px;color:var(--blue-light);font-weight:700;">● LIVE MONGODB</span>
-          </div>
-          <div class="hero-balance-val" id="totalNetBalance">₹0.00</div>
-          
-          <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.08);padding:4px 12px;border-radius:999px;font-size:12px;font-weight:600;margin-top:10px;border:1px solid var(--metallic-border);">
-            <span style="color:var(--blue-light);">✦</span>
-            <span id="cashbookCount" style="color:var(--text-primary);">0 Cashbooks Active</span>
-          </div>
-
-          <!-- Silver/Blue Metallic Wave SVG -->
-          <svg class="hero-sparkline" viewBox="0 0 500 60" fill="none" preserveAspectRatio="none">
-            <path d="M0 45 Q 60 20, 120 35 T 240 15 T 360 40 T 440 10 T 500 25" stroke="#3b82f6" stroke-width="3" fill="none" stroke-linecap="round"/>
-            <path d="M0 45 Q 60 20, 120 35 T 240 15 T 360 40 T 440 10 T 500 25 L 500 60 L 0 60 Z" fill="url(#blueWave)" opacity="0.2"/>
-            <defs>
-              <linearGradient id="blueWave" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#3b82f6"/>
-                <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-      </div>
-    </section>
-
-    <!-- Quick Action Pills Row -->
-    <div class="action-grid">
-      <a href="add-cashbook.html" class="action-btn-item">
-        <div class="action-icon-circle">＋</div>
-        <span>New Book</span>
-      </a>
-      <a href="analytics.html" class="action-btn-item">
-        <div class="action-icon-circle">📈</div>
-        <span>Analytics</span>
-      </a>
-      <a href="collaborators.html" class="action-btn-item">
-        <div class="action-icon-circle">👥</div>
-        <span>Collaborators</span>
-      </a>
-      <a href="superadmin.html" class="action-btn-item">
-        <div class="action-icon-circle">📊</div>
-        <span>Admin View</span>
-      </a>
+      <a href="login.html" class="link-back" onclick="localStorage.clear()">Logout</a>
     </div>
 
-    <!-- Cashbooks Grid Section -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin:32px 0 16px;">
-      <div>
-        <h2 style="font-size:22px;font-weight:800;color:var(--text-primary);letter-spacing:-0.02em;">My Cashbooks</h2>
-        <p style="font-size:13px;color:var(--text-secondary);margin-top:2px;">Select any cashbook to view detailed entries and transactions</p>
-      </div>
-      <a href="add-cashbook.html" class="btn secondary" style="padding:8px 18px;font-size:12px;">+ Add New</a>
-    </div>
+    <h3 style="margin-bottom:12px;">List of Cashbooks</h3>
+    <div id="list"></div>
 
-    <div id="list" class="cashbooks-grid"></div>
-  </main>
+    <a href="superadmin.html" class="link-back">Open Super Admin view →</a>
+  </div>
+
+  <!-- "+" opens the create-cashbook page -->
+  <button class="fab" onclick="location.href='add-cashbook.html'">+</button>
 
   <script src="cashbooks.js"></script>
 </body>

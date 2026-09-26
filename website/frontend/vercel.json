@@ -32,14 +32,6 @@
     {
       "source": "/superadmin",
       "destination": "/superadmin.html"
-    },
-    {
-      "source": "/analytics",
-      "destination": "/analytics.html"
-    },
-    {
-      "source": "/collaborators",
-      "destination": "/collaborators.html"
     }
   ]
 }

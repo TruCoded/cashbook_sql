@@ -47,23 +47,8 @@ export default function CashbooksScreen({ navigation }) {
         ListEmptyComponent={<Text style={styles.emptyText}>No cashbooks yet — tap + to create one.</Text>}
       />
 
-      <View style={{ flexDirection: "row", justifyContent: "space-between", marginVertical: 12 }}>
-        <TouchableOpacity
-          style={{ flex: 1, backgroundColor: "#1e293b", padding: 12, borderRadius: 12, marginRight: 6, alignItems: "center" }}
-          onPress={() => navigation.navigate("Analytics")}
-        >
-          <Text style={{ color: "#38bdf8", fontWeight: "700", fontSize: 13 }}>📈 Analytics</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={{ flex: 1, backgroundColor: "#1e293b", padding: 12, borderRadius: 12, marginLeft: 6, alignItems: "center" }}
-          onPress={() => navigation.navigate("Collaborators")}
-        >
-          <Text style={{ color: "#a855f7", fontWeight: "700", fontSize: 13 }}>👥 Collaborators</Text>
-        </TouchableOpacity>
-      </View>
-
       <TouchableOpacity onPress={() => navigation.navigate("SuperAdmin")}>
-        <Text style={[styles.link, { marginVertical: 8, textAlign: "center" }]}>Open Super Admin view →</Text>
+        <Text style={[styles.link, { marginTop: 16, textAlign: "center" }]}>Open Super Admin view →</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate("AddCashbook")}>
