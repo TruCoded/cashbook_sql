@@ -162,7 +162,7 @@ app.post("/api/auth/otp-login", async (req, res) => {
     const code = String(otp).trim();
 
     if (mongoose.connection.readyState === 1) {
-      const match = await Otp.findOne({ email: normalizedEmail, code });
+      const match = await Otp.findOneAndDelete({ email: normalizedEmail, code, purpose: "auth", createdAt: { $gt: new Date(Date.now() - 600000) } });
       if (!match) {
         return res.status(400).json({ error: "Incorrect or expired OTP" });
       }
@@ -176,14 +176,13 @@ app.post("/api/auth/otp-login", async (req, res) => {
         });
       }
 
-      await Otp.deleteMany({ email: normalizedEmail });
       return res.json({ id: user.id, name: user.name, email: user.email, picture: user.picture });
     }
 
     // Fallback
     const db = readLocalDB();
     const match = (db.otps || []).find(
-      (o) => (o.email || "").toLowerCase() === normalizedEmail && o.code === code
+      (o) => (o.email || "").toLowerCase() === normalizedEmail && o.code === code && o.purpose === "auth" && new Date(o.createdAt).getTime() > Date.now() - 600000
     );
     if (!match) {
       return res.status(400).json({ error: "Incorrect or expired OTP" });
@@ -199,7 +198,7 @@ app.post("/api/auth/otp-login", async (req, res) => {
       db.users.push(user);
     }
 
-    db.otps = (db.otps || []).filter((o) => (o.email || "").toLowerCase() !== normalizedEmail);
+    db.otps = (db.otps || []).filter((o) => o !== match);
     writeLocalDB(db);
 
     return res.json({ id: user.id, name: user.name, email: user.email, picture: user.picture });
@@ -581,21 +580,25 @@ async function sendCashbookSheetToCollaborator(cashbook, collaboratorEmail, owne
 
 // ---- OTP: REQUEST (public login/signup and collaborator flow) ----
 const { requestOtp } = require("./request-otp");
-app.post("/api/otp/request", requestOtp({
-  getMailer,
-  sender: () => `"My Cashbook" <${process.env.GMAIL_USER}>`,
-  saveCode: async (email, code) => {
-    if (mongoose.connection.readyState === 1) {
-      await Otp.deleteMany({ email });
-      await Otp.create({ email, code });
-    } else {
-      const db = readLocalDB();
-      db.otps = (db.otps || []).filter((o) => (o.email || "").toLowerCase() !== email);
-      db.otps.push({ email, code, createdAt: new Date().toISOString() });
-      writeLocalDB(db);
-    }
-  },
-}));
+function otpRequestFor(purpose) {
+  return requestOtp({
+    getMailer,
+    sender: () => `"My Cashbook" <${process.env.GMAIL_USER}>`,
+    saveCode: async (email, code) => {
+      if (mongoose.connection.readyState === 1) {
+        await Otp.deleteMany({ email, purpose });
+        await Otp.create({ email, code, purpose });
+      } else {
+        const db = readLocalDB();
+        db.otps = (db.otps || []).filter((o) => (o.email || "").toLowerCase() !== email || o.purpose !== purpose);
+        db.otps.push({ email, code, purpose, createdAt: new Date().toISOString() });
+        writeLocalDB(db);
+      }
+    },
+  });
+}
+app.post("/api/auth/otp/request", otpRequestFor("auth"));
+app.post("/api/otp/request", otpRequestFor("invitation"));
 
 // ---- OTP: VERIFY + ADD COLLABORATOR + SEND STATEMENT SHEET ----
 app.post("/api/cashbooks/:id/collaborators", async (req, res) => {
@@ -610,7 +613,7 @@ app.post("/api/cashbooks/:id/collaborators", async (req, res) => {
     let ownerName = "";
 
     if (mongoose.connection.readyState === 1) {
-      const match = await Otp.findOne({ email: normalizedEmail, code: String(otp).trim() });
+      const match = await Otp.findOneAndDelete({ email: normalizedEmail, code: String(otp).trim(), purpose: "invitation", createdAt: { $gt: new Date(Date.now() - 600000) } });
       if (!match) return res.status(400).json({ error: "Incorrect or expired OTP" });
 
       await Collaborator.create({
@@ -619,8 +622,6 @@ app.post("/api/cashbooks/:id/collaborators", async (req, res) => {
         accountNumber: accountNumber || "",
         ifsc: ifsc || "",
       });
-
-      await Otp.deleteMany({ email: normalizedEmail });
 
       targetCashbook = await Cashbook.findOne({ id: req.params.id }).lean();
       if (targetCashbook && targetCashbook.ownerId) {
@@ -631,7 +632,7 @@ app.post("/api/cashbooks/:id/collaborators", async (req, res) => {
       // Fallback
       const db = readLocalDB();
       const match = (db.otps || []).find(
-        (o) => (o.email || "").toLowerCase() === normalizedEmail && o.code === String(otp).trim()
+        (o) => (o.email || "").toLowerCase() === normalizedEmail && o.code === String(otp).trim() && o.purpose === "invitation" && new Date(o.createdAt).getTime() > Date.now() - 600000
       );
       if (!match) return res.status(400).json({ error: "Incorrect or expired OTP" });
 
@@ -641,7 +642,7 @@ app.post("/api/cashbooks/:id/collaborators", async (req, res) => {
         accountNumber: accountNumber || "",
         ifsc: ifsc || "",
       });
-      db.otps = db.otps.filter((o) => (o.email || "").toLowerCase() !== normalizedEmail);
+      db.otps = db.otps.filter((o) => o !== match);
       writeLocalDB(db);
 
       targetCashbook = (db.cashbooks || []).find((c) => c.id === req.params.id);
@@ -848,7 +849,7 @@ app.get("/api/collaborators/workspace", async (req, res) => {
     });
 
     // Add any pending OTPs as pending invitations
-    otps.forEach((o, idx) => {
+    otps.filter((o) => o.purpose === "invitation" && new Date(o.createdAt).getTime() > Date.now() - 600000).forEach((o, idx) => {
       list.push({
         id: `otp_${idx}`,
         name: o.email.split("@")[0],

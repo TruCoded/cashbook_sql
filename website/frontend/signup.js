@@ -36,14 +36,14 @@ async function requestSignupOtp() {
   btn.textContent = "Sending code to Gmail...";
 
   try {
-    const res = await fetch(`${API}/otp/request`, {
+    const res = await fetch(`${API}/auth/otp/request`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
     });
 
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
+    if (!res.ok || data.sent !== true) {
       if (errEl) errEl.textContent = data.error || "Failed to send OTP";
       return;
     }
