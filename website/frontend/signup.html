@@ -71,18 +71,19 @@
           <button class="btn full" onclick="signup()">Create Account →</button>
         </div>
 
-        <!-- Tab 2: Gmail SMTP OTP Registration -->
+        <!-- Tab 2: Demo OTP Registration -->
         <div id="otp-signup-section" style="display:none;">
           <label for="otpName">Your Name</label>
           <input id="otpName" placeholder="Your Name" value="Trusha" />
 
-          <label for="otpEmail">Your Gmail Address</label>
+          <label for="otpEmail">Your Email Address</label>
           <input id="otpEmail" type="email" placeholder="yourname@gmail.com" value="trushaa15@gmail.com" />
-          <button id="btnSendOtp" class="btn full secondary" onclick="requestSignupOtp()">Send 6-Digit Code to Gmail</button>
+          <button id="btnSendOtp" class="btn full secondary" onclick="requestSignupOtp()">Generate Demo Code</button>
 
           <div id="otpInputStep" style="display:none;margin-top:16px;padding-top:14px;border-top:1px solid var(--surface-border);">
+            <p id="demoOtpNotice" class="error" style="color:var(--text-secondary);"></p>
             <label for="signupOtpCode">Enter 6-Digit OTP</label>
-            <input id="signupOtpCode" placeholder="123456" maxlength="6" style="letter-spacing:4px;font-weight:700;text-align:center;font-size:18px;" />
+            <input id="signupOtpCode" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="123456" maxlength="6" style="letter-spacing:4px;font-weight:700;text-align:center;font-size:18px;" />
             <button class="btn full" onclick="verifyOtpAndSignup()">Verify &amp; Create Account →</button>
           </div>
           <p id="otpErr" class="error"></p>

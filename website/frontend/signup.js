@@ -33,7 +33,7 @@ async function requestSignupOtp() {
 
   const origText = btn.textContent;
   btn.disabled = true;
-  btn.textContent = "Sending code to Gmail...";
+  btn.textContent = "Generating demo code...";
 
   try {
     const res = await fetch(`${API}/auth/otp/request`, {
@@ -49,7 +49,10 @@ async function requestSignupOtp() {
     }
 
     document.getElementById("otpInputStep").style.display = "block";
-    alert(`A 6-digit OTP code has been sent to ${email}. Please check your inbox.`);
+    document.getElementById("signupOtpCode").value = data.demoCode || "";
+    document.getElementById("demoOtpNotice").textContent = data.demo
+      ? `Demo OTP: ${data.demoCode} (shown here only; no email was sent).`
+      : `A verification code was sent to ${email}.`;
   } catch (err) {
     console.error("OTP send error:", err);
     if (errEl) errEl.textContent = "Connection error. Please try again.";

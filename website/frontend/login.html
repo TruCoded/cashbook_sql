@@ -73,15 +73,16 @@
           <button class="btn full" onclick="login()">Sign In →</button>
         </div>
 
-        <!-- Tab 2: Gmail SMTP OTP Login (Zero 3rd party OAuth) -->
+        <!-- Tab 2: Demo OTP Login -->
         <div id="otp-login-section" style="display:none;">
-          <label for="otpEmail">Your Gmail / Email</label>
+          <label for="otpEmail">Your Email Address</label>
           <input id="otpEmail" type="email" placeholder="yourname@gmail.com" value="trushaa15@gmail.com" />
-          <button id="btnSendOtp" class="btn full secondary" onclick="requestLoginOtp()">Send 6-Digit Code to Gmail</button>
+          <button id="btnSendOtp" class="btn full secondary" onclick="requestLoginOtp()">Generate Demo Code</button>
 
           <div id="otpInputStep" style="display:none;margin-top:16px;padding-top:14px;border-top:1px solid var(--surface-border);">
+            <p id="demoOtpNotice" class="error" style="color:var(--text-secondary);"></p>
             <label for="loginOtpCode">Enter 6-Digit OTP</label>
-            <input id="loginOtpCode" placeholder="123456" maxlength="6" style="letter-spacing:4px;font-weight:700;text-align:center;font-size:18px;" />
+            <input id="loginOtpCode" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="123456" maxlength="6" style="letter-spacing:4px;font-weight:700;text-align:center;font-size:18px;" />
             <button class="btn full" onclick="verifyOtpAndLogin()">Verify &amp; Sign In →</button>
           </div>
           <p id="otpErr" class="error"></p>

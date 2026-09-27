@@ -11,7 +11,7 @@ require("dotenv").config({ path: path.join(__dirname, ".env") });
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
-const nodemailer = require("nodemailer");
+const { createGmailMailer } = require("./gmail-mailer");
 const mongoose = require("mongoose");
 const { connectDB, User, Cashbook, Collaborator, Otp } = require("./db");
 
@@ -20,26 +20,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Gmail SMTP requires a host that permits outbound port 465.
-const getMailer = () => {
-  const user = (process.env.GMAIL_USER || "").trim();
-  const pass = (process.env.GMAIL_APP_PASSWORD || "").replace(/\s+/g, "");
-
-  if (user && pass) {
-    return nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user,
-        pass,
-      },
-      family: 4, // Explicitly force IPv4 socket connection
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 15000,
-    });
-  }
-  return null;
-};
+// Use explicit IPv4 DNS resolution and preserve Gmail TLS validation.
+const getMailer = () => createGmailMailer();
 
 // Initialize MongoDB Connection
 let isMongoConnected = false;
@@ -150,7 +132,7 @@ app.post("/api/auth/google", async (req, res) => {
   }
 });
 
-// ---- GMAIL SMTP OTP LOGIN / SIGNUP (Passwordless, zero 3rd party OAuth) ----
+// ---- OTP LOGIN / SIGNUP (demo code by default; optional Gmail SMTP mode) ----
 app.post("/api/auth/otp-login", async (req, res) => {
   try {
     const { email, otp, name } = req.body;
@@ -583,6 +565,7 @@ const { requestOtp } = require("./request-otp");
 function otpRequestFor(purpose) {
   return requestOtp({
     getMailer,
+    mode: purpose === "auth" && process.env.OTP_AUTH_EMAIL_MODE !== "smtp" ? "demo" : "smtp",
     sender: () => `"My Cashbook" <${process.env.GMAIL_USER}>`,
     saveCode: async (email, code) => {
       if (mongoose.connection.readyState === 1) {

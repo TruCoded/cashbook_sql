@@ -16,3 +16,5 @@ services:
         sync: false
       - key: GMAIL_APP_PASSWORD
         sync: false
+      - key: OTP_AUTH_EMAIL_MODE
+        value: demo

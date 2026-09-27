@@ -1,15 +1,24 @@
 const { randomInt } = require("node:crypto");
 
-// Keep signup public; only successful mail delivery creates a usable code.
-function requestOtp({ getMailer, saveCode, sender }) {
+// Demo mode returns the auth OTP for on-screen autofill. Production can opt
+// back into real Gmail SMTP with OTP_AUTH_EMAIL_MODE=smtp.
+function requestOtp({ getMailer, saveCode, sender, mode = "smtp" }) {
   return async (req, res) => {
     const email = typeof req.body.email === "string" ? req.body.email.trim().toLowerCase() : "";
     if (!/^[^\s@<>]+@[^\s@<>]+\.[a-z]{2,}$/i.test(email)) {
       return res.status(400).json({ error: "Please enter a valid email address." });
     }
+    const code = String(randomInt(100000, 1000000));
+    if (mode === "demo") {
+      try {
+        await saveCode(email, code);
+        return res.json({ sent: true, emailSent: false, demoCode: code, demo: true });
+      } catch {
+        return res.status(503).json({ error: "We couldn't generate a verification code. Please try again." });
+      }
+    }
     const mailer = getMailer();
     if (!mailer) return res.status(503).json({ error: "Email delivery is not configured. Please use password sign-in for now." });
-    const code = String(randomInt(100000, 1000000));
     try {
       const result = await mailer.sendMail({
         from: sender(),

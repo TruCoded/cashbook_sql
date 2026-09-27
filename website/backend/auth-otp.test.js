@@ -1,4 +1,4 @@
-﻿const test = require('node:test');
+const test = require('node:test');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
@@ -14,7 +14,7 @@ function server() {
   express.json = () => () => {};
   const modules = {
     dotenv: { config() {} }, express, cors: () => () => {},
-    nodemailer: { createTransport: () => ({ sendMail: async (mail) => { messages.push(mail); return { accepted: [mail.to] }; } }) },
+    './gmail-mailer': { createGmailMailer: () => ({ sendMail: async (mail) => { messages.push(mail); return { accepted: [mail.to] }; } }) },
     mongoose: { connection: { readyState: 1 } },
     './db': {
       connectDB: async () => true,
@@ -36,13 +36,16 @@ function server() {
   return { post, saved, queries, messages };
 }
 
-test('signup OTP has a public route that saves authentication codes without a session', async () => {
+test('signup OTP uses a visible demo code without SMTP', async () => {
   const app = server();
   const res = await app.post('/api/auth/otp/request', { email: ' Person@Example.com ' });
   assert.equal(res.statusCode, 200);
   assert.equal(res.body.sent, true);
   assert.equal(app.saved[0].purpose, 'auth');
-  assert.equal(app.messages[0].to, 'person@example.com');
+  assert.equal(res.body.emailSent, false);
+  assert.equal(res.body.demo, true);
+  assert.equal(res.body.demoCode, app.saved[0].code);
+  assert.equal(app.messages.length, 0);
 });
 
 test('collaborator OTP route saves a distinct invitation purpose', async () => {

@@ -10,7 +10,7 @@
 A complete, dual-client financial ledger system organized into **two main directories**:
 
 - 📱 **`app/`**: Cross-platform Mobile App (**Android & iOS**) built with React Native & Expo SDK 57.
-- 🌐 **`website/`**: Complete Web Application (**Frontend & Backend API**) with MongoDB Atlas (Mongoose) & Gmail OTP delivery.
+- 🌐 **`website/`**: Complete Web Application (**Frontend & Backend API**) with MongoDB Atlas (Mongoose), demo OTP sign-in, and Gmail SMTP for collaborator email.
 
 ---
 
