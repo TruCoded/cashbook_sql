@@ -49,13 +49,7 @@ async function requestSignupOtp() {
     }
 
     document.getElementById("otpInputStep").style.display = "block";
-    const otpCode = data.code || data.demoCode;
-    if (otpCode) {
-      alert(`[Verification Code]: ${otpCode}\n\nCode has been auto-filled! Click "Verify & Create Account" to enter.`);
-      document.getElementById("signupOtpCode").value = otpCode;
-    } else {
-      alert(`A 6-digit OTP code has been sent to ${email}. Please check your inbox.`);
-    }
+    alert(`A 6-digit OTP code has been sent to ${email}. Please check your inbox.`);
   } catch (err) {
     console.error("OTP send error:", err);
     if (errEl) errEl.textContent = "Connection error. Please try again.";

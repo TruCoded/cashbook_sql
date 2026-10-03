@@ -20,7 +20,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Nodemailer Gmail SMTP Transporter (Forced IPv4 for 100% reliable cloud delivery)
+// Gmail SMTP requires a host that permits outbound port 465.
 const getMailer = () => {
   const user = (process.env.GMAIL_USER || "").trim();
   const pass = (process.env.GMAIL_APP_PASSWORD || "").replace(/\s+/g, "");
@@ -34,6 +34,8 @@ const getMailer = () => {
       },
       family: 4, // Explicitly force IPv4 socket connection
       connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
     });
   }
   return null;
@@ -577,62 +579,23 @@ async function sendCashbookSheetToCollaborator(cashbook, collaboratorEmail, owne
   }
 }
 
-// ---- OTP: REQUEST (Instant response + background email dispatch) ----
-app.post("/api/otp/request", async (req, res) => {
-  try {
-    const { email, cashbookName } = req.body;
-    if (!email) return res.status(400).json({ error: "Email is required" });
-
-    const code = String(Math.floor(100000 + Math.random() * 900000));
-    const normalizedEmail = email.toLowerCase().trim();
-
+// ---- OTP: REQUEST (public login/signup and collaborator flow) ----
+const { requestOtp } = require("./request-otp");
+app.post("/api/otp/request", requestOtp({
+  getMailer,
+  sender: () => `"My Cashbook" <${process.env.GMAIL_USER}>`,
+  saveCode: async (email, code) => {
     if (mongoose.connection.readyState === 1) {
-      await Otp.deleteMany({ email: normalizedEmail });
-      await Otp.create({ email: normalizedEmail, code });
+      await Otp.deleteMany({ email });
+      await Otp.create({ email, code });
     } else {
       const db = readLocalDB();
-      db.otps = (db.otps || []).filter((o) => (o.email || "").toLowerCase() !== normalizedEmail);
-      db.otps.push({ email: normalizedEmail, code });
+      db.otps = (db.otps || []).filter((o) => (o.email || "").toLowerCase() !== email);
+      db.otps.push({ email, code, createdAt: new Date().toISOString() });
       writeLocalDB(db);
     }
-
-    const mailer = getMailer();
-    const isSmtpConfigured = Boolean(mailer);
-    const bookTitle = cashbookName ? ` for "${cashbookName}"` : "";
-
-    // Send email asynchronously in background so response is instantaneous (<50ms)
-    if (mailer) {
-      mailer.sendMail({
-        from: `"My Cashbook" <${process.env.GMAIL_USER}>`,
-        to: email,
-        subject: `Your Cashbook Verification Code${bookTitle}: ${code}`,
-        html: `
-          <div style="font-family:'Segoe UI',Helvetica,Arial,sans-serif;max-width:520px;margin:20px auto;padding:32px;background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;">
-            <h2 style="margin:0 0 16px;color:#1e3a8a;font-size:22px;letter-spacing:-0.02em;">Cashbook Verification Code</h2>
-            <p style="color:#475569;font-size:15px;line-height:1.5;">You requested a verification code to authenticate on <strong>${cashbookName || 'Cashbook'}</strong>. Use the code below to complete sign-in:</p>
-            <div style="margin:24px 0;padding:16px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;text-align:center;">
-              <span style="font-size:32px;font-weight:800;letter-spacing:8px;color:#2563eb;font-family:monospace;">${code}</span>
-            </div>
-            <p style="color:#64748b;font-size:13px;margin:0;">This code will expire in 10 minutes. If you did not request this OTP, you can safely ignore this email.</p>
-          </div>
-        `,
-        text: `Your Cashbook OTP${bookTitle} is ${code}. Valid for 10 minutes.`,
-      }).then(() => {
-        console.log(`[SMTP Mailer] Real OTP email delivered to ${email} via Gmail SMTP.`);
-      }).catch((mailErr) => {
-        console.error(`[SMTP Mailer] Delivery failed (${mailErr.message}).`);
-      });
-    }
-
-    console.log(`[OTP Engine] 6-digit OTP for ${email}: ${code} (SMTP Configured: ${isSmtpConfigured})`);
-    
-    // Always include code so user is never locked out if cloud provider blocks SMTP
-    res.json({ sent: true, emailSent: isSmtpConfigured, code, demoCode: code });
-  } catch (err) {
-    console.error("OTP request error:", err);
-    res.status(500).json({ error: "Failed to request OTP" });
-  }
-});
+  },
+}));
 
 // ---- OTP: VERIFY + ADD COLLABORATOR + SEND STATEMENT SHEET ----
 app.post("/api/cashbooks/:id/collaborators", async (req, res) => {
