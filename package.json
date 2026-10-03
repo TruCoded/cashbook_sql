@@ -1,0 +1,11 @@
+{
+  "name": "cashbook-sql",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cashbook fullstack monorepo",
+  "scripts": {
+    "postinstall": "npm --prefix website/backend install",
+    "build": "npm --prefix website/backend install",
+    "start": "node website/backend/server.js"
+  }
+}

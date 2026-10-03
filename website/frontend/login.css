@@ -1,2 +1,1 @@
-/* login.css - small page-specific styling on top of shared.css */
-body { background: var(--lavender); }
+/* login.css - styling inherits from shared.css */

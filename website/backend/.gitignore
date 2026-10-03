@@ -31,4 +31,3 @@ npm-debug.log*
 Thumbs.db
 .vscode/
 .idea/
-!.env.example

@@ -16,6 +16,7 @@ import {
 } from "@expo-google-fonts/poppins";
 
 import { AuthProvider, useAuth } from "./src/context/AuthContext";
+import { ThemeProvider } from "./src/context/ThemeContext";
 import { colors } from "./src/theme";
 
 import LoginScreen from "./src/screens/LoginScreen";
@@ -24,6 +25,8 @@ import CashbooksScreen from "./src/screens/CashbooksScreen";
 import AddCashbookScreen from "./src/screens/AddCashbookScreen";
 import CashbookDetailScreen from "./src/screens/CashbookDetailScreen";
 import SuperAdminScreen from "./src/screens/SuperAdminScreen";
+import AnalyticsScreen from "./src/screens/AnalyticsScreen";
+import CollaboratorsScreen from "./src/screens/CollaboratorsScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -42,6 +45,8 @@ function RootNavigator() {
       {user ? (
         <>
           <Stack.Screen name="Cashbooks" component={CashbooksScreen} />
+          <Stack.Screen name="Analytics" component={AnalyticsScreen} />
+          <Stack.Screen name="Collaborators" component={CollaboratorsScreen} />
           <Stack.Screen name="AddCashbook" component={AddCashbookScreen} />
           <Stack.Screen name="CashbookDetail" component={CashbookDetailScreen} />
           <Stack.Screen name="SuperAdmin" component={SuperAdminScreen} />
@@ -76,10 +81,12 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <NavigationContainer>
-        <StatusBar style="dark" />
-        <RootNavigator />
-      </NavigationContainer>
+      <ThemeProvider>
+        <NavigationContainer>
+          <StatusBar style="light" />
+          <RootNavigator />
+        </NavigationContainer>
+      </ThemeProvider>
     </AuthProvider>
   );
 }

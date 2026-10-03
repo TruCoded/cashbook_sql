@@ -2,9 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>My Cashbook - Super Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Cashbook - Super Admin</title>
   <link rel="stylesheet" href="shared.css" />
   <link rel="stylesheet" href="superadmin.css" />
+  <script src="theme.js"></script>
   <!-- Vercel Web Analytics & Speed Insights -->
   <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
   <script defer src="/_vercel/insights/script.js"></script>
@@ -12,20 +14,69 @@
   <script defer src="/_vercel/speed-insights/script.js"></script>
 </head>
 <body>
-  <div class="page" style="max-width:700px;">
-    <a href="cashbooks.html" class="link-back">← Back</a>
-    <h2 style="margin-top:16px;">Super Admin <span class="script">Sheet</span></h2>
-    <p style="color:var(--navy);margin-top:-8px;">Every user's cashbooks and collaborators, in one place.</p>
+  <!-- Full-Screen Top Navbar -->
+  <header class="app-navbar">
+    <div class="navbar-inner">
+      <a href="cashbooks.html" class="brand-logo-wrap">
+        <img src="logo-dark.png" class="brand-logo-img" alt="Cashbook" />
+        <span class="brand-tag">ADMIN</span>
+      </a>
 
-    <div class="card">
-      <table>
-        <thead>
-          <tr><th>Cashbook</th><th>Owner</th><th>Balance</th><th>Collaborators</th></tr>
-        </thead>
-        <tbody id="rows"></tbody>
-      </table>
+      <nav class="nav-links">
+        <a href="cashbooks.html" class="nav-link">Dashboard</a>
+        <a href="analytics.html" class="nav-link">Analytics</a>
+        <a href="collaborators.html" class="nav-link">Collaborators</a>
+        <a href="superadmin.html" class="nav-link active">Admin Ledger</a>
+      </nav>
+
+      <div class="nav-right-actions">
+        <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Theme">☀️</button>
+        <a href="cashbooks.html" class="btn secondary" style="padding:8px 16px;font-size:12px;">← Dashboard</a>
+      </div>
     </div>
-  </div>
+  </header>
+
+  <main class="page-container">
+    <div style="margin-bottom:28px;">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--blue-light);letter-spacing:0.06em;margin-bottom:6px;">
+        MASTER LEDGER OVERVIEW
+      </div>
+      <h1 style="font-size:36px;font-weight:800;letter-spacing:-0.03em;margin-bottom:6px;color:var(--text-primary);">Super Admin Dashboard</h1>
+      <p style="color:var(--text-secondary);font-size:15px;margin:0;">Global overview of all registered cashbooks, owners, and active collaborators across MongoDB</p>
+    </div>
+
+    <!-- Summary Stats -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:16px;margin-bottom:24px;">
+      <div class="card" style="margin-bottom:0;padding:22px;">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text-secondary);">Total Cashbooks in System</div>
+        <div id="statTotalBooks" style="font-size:32px;font-weight:800;color:var(--text-primary);margin-top:4px;">...</div>
+      </div>
+      <div class="card" style="margin-bottom:0;padding:22px;">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text-secondary);">Global Cumulative Balance</div>
+        <div id="statGlobalBalance" style="font-size:32px;font-weight:800;color:var(--blue-light);margin-top:4px;">...</div>
+      </div>
+    </div>
+
+    <!-- Responsive Table Card -->
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Cashbook Name</th>
+              <th>Owner</th>
+              <th>Balance</th>
+              <th>Collaborators</th>
+            </tr>
+          </thead>
+          <tbody id="rows">
+            <tr><td colspan="4" style="text-align:center;padding:28px;color:var(--text-secondary);">Loading master ledger data...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
   <script src="superadmin.js"></script>
 </body>
 </html>

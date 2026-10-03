@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Cashbook - Collaborators</title>
+  <link rel="stylesheet" href="shared.css" />
+  <script src="theme.js"></script>
+  <!-- Vercel Web Analytics & Speed Insights -->
+  <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+  <script defer src="/_vercel/insights/script.js"></script>
+  <script>window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };</script>
+  <script defer src="/_vercel/speed-insights/script.js"></script>
+  <style>
+    .workspace-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--blue-light);
+      background: rgba(37, 99, 235, 0.15);
+      padding: 4px 14px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+      border: 1px solid var(--metallic-border);
+    }
+    .collab-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+    .collab-row-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 22px;
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-md);
+      margin-bottom: 12px;
+      transition: all 0.2s ease;
+    }
+    .collab-row-item:hover {
+      border-color: var(--surface-border-focus);
+      transform: translateY(-1px);
+    }
+    .collab-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: var(--surface-elevated);
+      color: var(--blue-light);
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--surface-border);
+    }
+    .step-card {
+      padding: 20px;
+      background: var(--surface-elevated);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--surface-border);
+    }
+    .step-number {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--blue-light);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .step-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+    .step-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <!-- Full-Screen Top Navbar -->
+  <header class="app-navbar">
+    <div class="navbar-inner">
+      <a href="cashbooks.html" class="brand-logo-wrap">
+        <img src="logo-dark.png" class="brand-logo-img" alt="Cashbook" />
+        <span class="brand-tag">WORKSPACE</span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="cashbooks.html" class="nav-link">Dashboard</a>
+        <a href="analytics.html" class="nav-link">Analytics</a>
+        <a href="collaborators.html" class="nav-link active">Collaborators</a>
+        <a href="superadmin.html" class="nav-link">Admin Ledger</a>
+      </nav>
+
+      <div class="nav-right-actions">
+        <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Theme">☀️</button>
+        <button class="btn" onclick="openInviteModal()" style="padding:8px 18px;font-size:12px;">+ Invite Person</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-container">
+    <!-- Header Banner -->
+    <div style="margin-bottom:32px;">
+      <div class="workspace-pill">✦ SHARED FINANCIAL WORKSPACE</div>
+      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:18px;">
+        <div>
+          <h1 style="font-size:36px;font-weight:800;letter-spacing:-0.03em;margin-bottom:8px;color:var(--text-primary);">Work together securely.</h1>
+          <p style="color:var(--text-secondary);font-size:15px;max-width:580px;margin:0;">
+            Invite trusted people to your cashbooks and control exactly what they can see or edit.
+          </p>
+        </div>
+        <button class="btn" onclick="openInviteModal()">+ Invite collaborator</button>
+      </div>
+    </div>
+
+    <!-- 3 Stat Metrics -->
+    <div class="collab-stat-grid">
+      <div class="card" style="margin-bottom:0;padding:24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <span style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;">Collaborators</span>
+          <span style="font-size:18px;">👥</span>
+        </div>
+        <div id="statCollabs" style="font-size:34px;font-weight:800;color:var(--text-primary);letter-spacing:-0.02em;">...</div>
+        <div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">People connected</div>
+      </div>
+
+      <div class="card" style="margin-bottom:0;padding:24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <span style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;">Shared cashbooks</span>
+          <span style="font-size:18px;">🛡️</span>
+        </div>
+        <div id="statSharedBooks" style="font-size:34px;font-weight:800;color:var(--text-primary);letter-spacing:-0.02em;">...</div>
+        <div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">Currently shared</div>
+      </div>
+
+      <div class="card" style="margin-bottom:0;padding:24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <span style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;">Pending invitations</span>
+          <span style="font-size:18px;">⏳</span>
+        </div>
+        <div id="statPending" style="font-size:34px;font-weight:800;color:var(--text-primary);letter-spacing:-0.02em;">...</div>
+        <div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">Awaiting verification</div>
+      </div>
+    </div>
+
+    <!-- Your Collaborators Section -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:32px 0 16px;">
+      <div>
+        <h2 style="font-size:20px;font-weight:800;color:var(--text-primary);letter-spacing:-0.02em;">Your collaborators</h2>
+        <p style="font-size:13px;color:var(--text-secondary);margin-top:2px;">People who have access to your shared cashbooks</p>
+      </div>
+    </div>
+
+    <div id="collabListContainer">
+      <div class="card" style="text-align:center;padding:32px;color:var(--text-secondary);">Loading collaborators...</div>
+    </div>
+
+    <!-- Secure Collaboration Guide (No Yellow - Clean Silver/Light Styling) -->
+    <div class="card" style="margin-top:36px;padding:28px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+        <span style="font-size:24px;">🛡️</span>
+        <div>
+          <div style="font-size:17px;font-weight:800;color:var(--text-primary);">Secure collaboration</div>
+          <div style="font-size:13px;color:var(--text-secondary);">You control who gets access to your financial data.</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:16px;">
+        <div class="step-card">
+          <div class="step-number">01</div>
+          <div class="step-title">Invite</div>
+          <div class="step-desc">Enter the collaborator's Gmail or email address securely.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-number">02</div>
+          <div class="step-title">Verify</div>
+          <div class="step-desc">The collaborator verifies their identity using a 6-digit OTP code.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-number">03</div>
+          <div class="step-title">Control</div>
+          <div class="step-desc">Choose whether they can view or edit transactions in the cashbook.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Quick Invite Modal -->
+  <div id="inviteModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:200;align-items:center;justify-content:center;padding:20px;">
+    <div class="card" style="max-width:440px;width:100%;margin:0;padding:30px 24px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <h3 style="font-size:19px;font-weight:800;margin:0;">Invite Collaborator</h3>
+        <button onclick="closeInviteModal()" style="background:none;border:none;color:var(--text-secondary);font-size:22px;cursor:pointer;">✕</button>
+      </div>
+
+      <label for="modalEmail">Collaborator Email</label>
+      <input id="modalEmail" type="email" placeholder="partner@example.com" />
+
+      <label for="modalRole">Access Role</label>
+      <select id="modalRole">
+        <option value="Editor">Editor (Can record entries)</option>
+        <option value="Viewer">Viewer (Read-only)</option>
+      </select>
+
+      <button class="btn full" onclick="sendInvite()" style="margin-top:8px;">Send Invitation Code →</button>
+    </div>
+  </div>
+
+  <script src="collaborators.js"></script>
+</body>
+</html>

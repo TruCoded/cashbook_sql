@@ -1,2 +1,1 @@
-/* signup.css - page-specific styling */
-body { background: var(--lavender); }
+/* signup.css - styling inherits from shared.css */

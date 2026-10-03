@@ -2,43 +2,102 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>My Cashbook - Sign Up</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Cashbook - Create Account</title>
   <link rel="stylesheet" href="shared.css" />
   <link rel="stylesheet" href="signup.css" />
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="theme.js"></script>
   <!-- Vercel Web Analytics & Speed Insights -->
   <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
   <script defer src="/_vercel/insights/script.js"></script>
   <script>window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };</script>
   <script defer src="/_vercel/speed-insights/script.js"></script>
+  <style>
+    .auth-fullscreen {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px 20px;
+    }
+    .auth-card-wrap {
+      max-width: 440px;
+      width: 100%;
+      margin: 0 auto;
+      padding-top: 20px;
+    }
+    .logo-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+  </style>
 </head>
 <body>
-  <div class="page" style="display:flex;flex-direction:column;justify-content:center;min-height:100vh;">
-    <p class="script" style="text-align:center;margin-bottom:-6px;">Join</p>
-    <h1 style="text-align:center;margin-top:0;">MY CASHBOOK</h1>
-    <p style="text-align:center;color:var(--navy);margin-bottom:32px;">Create an account to start tracking</p>
-
-    <div class="card">
-      <!-- Google fills this with its own "Sign up with Google" button (see signup.js).
-           One tap creates the account AND logs in - no password to choose at all. -->
-      <div id="google-btn" style="display:flex;justify-content:center;margin-bottom:6px;"></div>
-      <p class="or-divider">or sign up with email</p>
-
-      <label for="name">Name</label>
-      <input id="name" placeholder="Your name" />
-
-      <label for="email">Email</label>
-      <input id="email" type="email" placeholder="you@example.com" />
-
-      <label for="password">Password</label>
-      <input id="password" type="password" placeholder="Choose a password" />
-
-      <p id="err" class="error"></p>
-      <button class="btn full" onclick="signup()">Sign Up</button>
+  <div class="auth-fullscreen">
+    <!-- Top Bar with Theme Toggle -->
+    <div style="display:flex;justify-content:space-between;align-items:center;max-width:1240px;width:100%;margin:0 auto;">
+      <a href="#" class="brand-logo-wrap">
+        <img src="logo-dark.png" class="brand-logo-img" alt="Cashbook" />
+      </a>
+      <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Theme">☀️</button>
     </div>
 
-    <p class="auth-switch">Already have an account? <a href="login.html">Sign In</a></p>
+    <!-- Centered Signup Box -->
+    <div class="auth-card-wrap">
+      <div class="logo-header">
+        <h1 style="font-size:30px;font-weight:800;letter-spacing:-0.03em;margin-bottom:8px;color:var(--text-primary);">Create Account</h1>
+        <p style="color:var(--text-secondary);font-size:14px;margin:0;">Start tracking cash flows with zero setup</p>
+      </div>
+
+      <div class="card" style="padding:28px 24px;">
+        <!-- Auth Tabs: Password vs Gmail OTP -->
+        <div style="display:flex;gap:8px;background:var(--surface-elevated);padding:4px;border-radius:12px;margin-bottom:20px;border:1px solid var(--surface-border);">
+          <button id="tab-password" type="button" class="btn" onclick="switchAuthTab('password')" style="flex:1;padding:8px 12px;font-size:13px;border-radius:8px;">Password</button>
+          <button id="tab-otp" type="button" class="btn secondary" onclick="switchAuthTab('otp')" style="flex:1;padding:8px 12px;font-size:13px;border-radius:8px;">✉️ Gmail OTP</button>
+        </div>
+
+        <!-- Tab 1: Password Registration -->
+        <div id="password-signup-section">
+          <label for="name">Full Name</label>
+          <input id="name" placeholder="Alex Morgan" />
+
+          <label for="email">Email Address</label>
+          <input id="email" type="email" placeholder="alex@example.com" />
+
+          <label for="password">Password</label>
+          <input id="password" type="password" placeholder="Create a secure password" />
+
+          <p id="err" class="error"></p>
+          <button class="btn full" onclick="signup()">Create Account →</button>
+        </div>
+
+        <!-- Tab 2: Gmail SMTP OTP Registration -->
+        <div id="otp-signup-section" style="display:none;">
+          <label for="otpName">Your Name</label>
+          <input id="otpName" placeholder="Your Name" value="Trusha" />
+
+          <label for="otpEmail">Your Gmail Address</label>
+          <input id="otpEmail" type="email" placeholder="yourname@gmail.com" value="trushaa15@gmail.com" />
+          <button id="btnSendOtp" class="btn full secondary" onclick="requestSignupOtp()">Send 6-Digit Code to Gmail</button>
+
+          <div id="otpInputStep" style="display:none;margin-top:16px;padding-top:14px;border-top:1px solid var(--surface-border);">
+            <label for="signupOtpCode">Enter 6-Digit OTP</label>
+            <input id="signupOtpCode" placeholder="123456" maxlength="6" style="letter-spacing:4px;font-weight:700;text-align:center;font-size:18px;" />
+            <button class="btn full" onclick="verifyOtpAndSignup()">Verify &amp; Create Account →</button>
+          </div>
+          <p id="otpErr" class="error"></p>
+        </div>
+      </div>
+
+      <p class="auth-switch">Already registered? <a href="login.html">Sign In</a></p>
+    </div>
+
+    <!-- Clean Footer -->
+    <div style="text-align:center;font-size:12px;color:var(--text-muted);padding:16px 0;">
+      © 2026 My Cashbook. Secure financial intelligence.
+    </div>
   </div>
+
   <script src="signup.js"></script>
 </body>
 </html>

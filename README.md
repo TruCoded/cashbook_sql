@@ -1,73 +1,123 @@
-# Cashbook: website and mobile app
+# 💼 My Cashbook — Full-Stack Financial Ledger & Mobile System
 
-The website in `website/frontend` and the Expo app in `app` share an Express backend in `website/backend`.
-The backend stores cashbooks and users in MongoDB and sends invitation emails directly through Gmail SMTP using Nodemailer. There is no external email delivery service and no Apps Script dependency in the active backend.
+[![React Native](https://img.shields.io/badge/React%20Native-Expo%20SDK%2057-000000?logo=react&logoColor=61DAFB)](https://reactnative.dev/)
+[![Node.js](https://img.shields.io/badge/Node.js-v18+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Express.js](https://img.shields.io/badge/Express.js-4.19-000000?logo=express&logoColor=white)](https://expressjs.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas%20%26%20Mongoose-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![Gmail SMTP](https://img.shields.io/badge/Gmail-Nodemailer%20OTP-EA4335?logo=gmail&logoColor=white)](https://nodemailer.com/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## Backend setup
+A complete, dual-client financial ledger system organized into **two main directories**:
 
-1. Run MongoDB locally or provision a MongoDB server accessible to your backend.
-2. In `website/backend`, run `npm ci` and copy `.env.example` to `.env`.
-3. Set `MONGODB_URI`, `MONGODB_DB`, `GMAIL_USER`, `GMAIL_APP_PASSWORD`, and a random `OTP_SECRET` of at least 32 characters. Generate the secret with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`.
-4. The sender Gmail account needs 2-Step Verification and a Google App Password. Use a newly generated app password, not the normal account password. Keep all credentials on the backend. The recipient needs no setup or app password.
-5. Run `npm start`. `/api/health` checks MongoDB connectivity; it does not claim SMTP delivery is working.
-6. Serve `website/frontend` locally with a static server. The frontend uses `http://localhost:5000/api` for localhost previews. In production Vercel proxies `/api` to the backend specified in the Vercel configuration.
+- 📱 **`app/`**: Cross-platform Mobile App (**Android & iOS**) built with React Native & Expo SDK 57.
+- 🌐 **`website/`**: Complete Web Application (**Frontend & Backend API**) with MongoDB Atlas (Mongoose) & Gmail OTP delivery.
 
-Gmail setup reference: https://nodemailer.com/guides/using-gmail
+---
 
-A Gmail app password previously appeared in the mobile README. Revoke that exposed password in the sender's Google account and replace it. Removing the text does not revoke the credential or erase earlier copies.
+## 🏗️ Clean 2-Folder Project Structure
 
-## Deploying
-
-Set the same environment variables in the backend host, deploy the updated backend and website together, and rebuild the mobile app with the correct public API URL. Existing users must sign out and sign in again to receive a server session before sending invitations.
-
-**Render Free blocks outbound ports 25, 465, and 587**, so direct Gmail SMTP cannot work there. The supplied Render blueprints now specify the paid `starter` plan. Reviewing these files does not upgrade or deploy any service. Alternatively use a backend host that permits outbound SMTP on port 465. See https://render.com/docs/free .
-
-Update all applicable Vercel `/api` rewrite destinations if the backend hostname changes. This workspace does not contain the separate `/collaborators` page from the reported production screenshot; deploy this source or apply the same API contract to that separate frontend.
-
-## Existing data
-
-MongoDB is now required. There is no silent fallback to Sheets or a local JSON file, and old data is not automatically copied.
-
-Before switching production, back up/export the old database as JSON with `users`, `cashbooks`, and `collaborators` arrays. Then run from `website/backend`:
-
-```sh
-node import-json.js /path/to/export.json
+```text
+cashbook_sql/
+├── app/                  # 📱 Mobile Application (Android & iOS)
+│   ├── App.js            # Root navigator & Google Fonts loader
+│   ├── app.json          # Expo configuration & deep linking
+│   ├── eas.json          # EAS cloud build configuration (APK)
+│   ├── package.json      # Dependencies (Expo, Navigation, etc.)
+│   └── src/
+│       ├── api.js        # API endpoint URL configuration
+│       ├── theme.js      # Typography (Playfair & Poppins) & color palette
+│       ├── context/      # Session state & AsyncStorage
+│       └── screens/      # All mobile screens
+│
+└── website/              # 🌐 Website & Backend System
+    ├── backend/          # Shared Express REST API & Database
+    │   ├── server.js     # Express server & API endpoints
+    │   ├── db.js         # MongoDB connection & migration logic
+    │   ├── models/       # Mongoose schemas (User, Cashbook, Collaborator, Otp)
+    │   └── data/db.json  # Local development database fallback
+    ├── frontend/         # Web Application
+    │   ├── shared.css    # Typography, color tokens & CSS styles
+    │   ├── login.html    # Web login & Google One-Tap
+    │   ├── signup.html   # Web user registration
+    │   ├── cashbooks.html # Cashbooks dashboard
+    │   ├── add-cashbook.html # New ledger modal
+    │   ├── cashbook-detail.html # Entries & OTP collaborator flow
+    │   └── superadmin.html # Super Admin master ledger
+    ├── index.html        # Web entrypoint
+    ├── render.yaml       # Render cloud deployment config
+    └── vercel.json       # Vercel deployment config
 ```
 
-This refuses to overwrite a nonempty MongoDB state. It preserves IDs, hashes legacy passwords, normalizes email addresses, and discards old OTPs. Google-only users continue through verified Google sign-in on the website. Set `GOOGLE_CLIENT_ID` to the same OAuth client ID as the frontend.
+---
 
-The existing cashbook document structure is kept in a versioned MongoDB state document; stale writes return HTTP 409 rather than overwriting another update. Invitations, sessions, and mail counters use separate collections. The state document is subject to MongoDB's 16 MB document limit.
+## 🚀 Quick Start Guide
 
-## Invitation flow
+### 1. Start the Website & Backend Server
 
-1. Sign in as the cashbook owner and open its detail screen.
-2. Enter the collaborator's complete email, such as `renudinesh09@gmail.com`, and select **Send invitation & OTP**. `renudinesh09@gmailcom` is rejected; addresses are never silently corrected to a different mailbox.
-3. Gmail receives a request addressed only to that recipient. The message includes the cashbook name and a cryptographically generated six-digit code. Success means Gmail accepted the message; inbox placement and final delivery still depend on Gmail. Check Spam if needed.
-4. The collaborator provides the code to the owner to confirm access in the existing owner-managed form. This is not a standalone recipient acceptance-link flow.
-5. A code expires after ten minutes, allows five verification attempts, and can be used once for its exact email/cashbook/invitation. Resend is limited to once per minute, with ten requests per sender and recipient per hour. Resending invalidates the previous invitation.
+```bash
+cd website/backend
+npm install
 
-Missing SMTP credentials, rejected recipients, and send errors return actual errors. No OTP is returned by the API or printed to logs. MongoDB stores only an HMAC of the code. Pending and failed invitations do not grant access. Only an authenticated owner can request or verify invitations.
+# Add your MongoDB Atlas connection string in website/backend/.env:
+# MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/?retryWrites=true&w=majority
+# MONGODB_DB_NAME=cashbook
 
-### API contract
+npm start
+```
+- Backend API runs on: **`http://localhost:5000`**
+- *Note:* On first startup with MongoDB connected, existing data from `data/db.json` is automatically migrated to your MongoDB cluster!
 
-- `POST /api/otp/request` with a bearer session token and `{ email, cashbookId }` returns `{ sent: true, email, invitationId, expiresIn: 600, retryAfter: 60 }` after SMTP acceptance.
-- `POST /api/cashbooks/:id/collaborators` with the same owner's bearer token and `{ collaboratorEmail, invitationId, otp, accountNumber, ifsc }` verifies and activates access.
-- Session tokens are issued by signup/login and verified Google sign-in. The old identity-only Google login payload is no longer accepted.
+---
 
-### OTP autofill
+### 2. View the Web App in Browser
 
-Both clients mark the input as `one-time-code` and allow manual typing/pasting. Only the operating system/browser can offer a code suggestion based on its supported mail integration and settings. Neither client fetches the code from the backend, reads an inbox, or shows a fabricated autofill button.
+```bash
+cd website/frontend
+npx serve . -l 5500
+```
+- Open **`http://localhost:5500/login.html`** in your browser.
 
-There is no cross-platform API for checking whether a particular Gmail account is installed on a phone, and this app cannot enforce an email-account condition on the keyboard's suggestion UI. Having Gmail installed does not guarantee email-code autofill. Every entered/suggested code is still checked against the intended recipient and invitation on the server.
+---
 
-References: https://reactnative.dev/docs/textinput and https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/autocomplete .
+### 3. Run the Mobile App (Android & iOS)
 
-## Mobile setup
+```bash
+cd app
+npx expo start -c
+```
+- Open **Expo Go** on your Android or iPhone and scan the QR code displayed in the terminal.
 
-See `app/README.md`. The old hardcoded Google identity/demo login was removed. Mobile users can use real email/password signup and login. Adding a native Google OAuth flow requires platform OAuth client configuration; the old button was not a working OAuth integration.
+---
 
-## Validation
+## 📦 Building Standalone Android APK
 
-Run `npm test` in `website/backend`. The suite uses a temporary real MongoDB server and a fake SMTP transport; the first run downloads the MongoDB test binary. It covers delivery failures, malformed recipients, expiry, attempts, concurrency, resend invalidation, session ownership, and end-to-end API access after verification. No real email is sent by tests.
+To generate an installable `.apk` for your phone:
 
-Real inbox delivery and device-specific autofill require a configured Gmail account, a reachable MongoDB instance, an SMTP-capable host, and a physical device. Existing non-invitation cashbook/admin endpoints retain their previous access model; this change is not a complete authorization audit of the application.
+```bash
+cd app
+
+# 1. Log in with your Expo account
+npx eas login
+
+# 2. Link EAS project (one-time)
+npx eas init
+
+# 3. Cloud build the preview APK
+npx eas build --platform android --profile preview
+```
+
+---
+
+## 🔑 Demo Credentials (Local Mode)
+
+| Account | Email | Password | Role / Data |
+|---|---|---|---|
+| User 1 | `trusha@example.com` | `trusha123` | Seeded sample cashbooks |
+| User 2 | `rohan@example.com` | `rohan123` | Seeded account |
+| Super Admin | Dashboard Link | — | Master administrative view |
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.

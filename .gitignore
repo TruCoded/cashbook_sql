@@ -82,7 +82,3 @@ Desktop.ini
 .cache/
 dist/
 build/
-
-# Safe templates contain placeholders only.
-!website/backend/.env.example
-!app/.env.example
