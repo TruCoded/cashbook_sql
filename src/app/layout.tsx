@@ -8,6 +8,15 @@ export const metadata: Metadata = {
   description:
     "A collaborative digital cashbook. Track cash in and out, add a partner with a Gmail code, and get a PDF copy of every change in your inbox.",
   robots: { index: true, follow: true },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Cashbook",
+  },
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icon-192.png",
+  },
 };
 
 export const viewport: Viewport = {
